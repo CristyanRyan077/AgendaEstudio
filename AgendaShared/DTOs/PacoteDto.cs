@@ -1,5 +1,5 @@
 
-namespace AgendaApi.Domain.DTOs
+namespace AgendaShared.DTOs
 {
     public class PacoteDto
     {

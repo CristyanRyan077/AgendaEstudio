@@ -1,4 +1,4 @@
-﻿using AgendaApi.Domain.Models;
+﻿using AgendaShared;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;

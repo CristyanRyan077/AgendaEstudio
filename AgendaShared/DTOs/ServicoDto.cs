@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace AgendaApi.Domain.DTOs
+namespace AgendaShared.DTOs
 {
     public class ServicoDto
     {

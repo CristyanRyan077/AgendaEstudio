@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using AgendaApi.Domain.Models;
+using AgendaShared;
 
 namespace AgendaApi.Models;
 

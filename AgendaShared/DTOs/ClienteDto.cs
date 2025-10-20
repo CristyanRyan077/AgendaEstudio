@@ -1,8 +1,8 @@
 ﻿
-using AgendaApi.Domain.Models;
 using AgendaShared.DTOs;
+using AgendaShared;
 
-namespace AgendaApi.Domain.DTOs
+namespace AgendaShared.DTOs 
 {
     public class ClienteDto
     {

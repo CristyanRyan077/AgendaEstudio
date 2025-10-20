@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using AgendaMobile.Services;
+using Microsoft.Extensions.Logging;
 
 namespace AgendaMobile
 {
@@ -14,9 +15,9 @@ namespace AgendaMobile
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
-
+            builder.Services.AddSingleton<IApiService, ApiService>();
 #if DEBUG
-    		builder.Logging.AddDebug();
+            builder.Logging.AddDebug();
 #endif
 
             return builder.Build();

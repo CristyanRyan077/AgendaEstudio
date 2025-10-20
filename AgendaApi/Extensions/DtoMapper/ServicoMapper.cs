@@ -1,4 +1,4 @@
-using AgendaApi.Domain.DTOs;
+using AgendaShared.DTOs;
 using AgendaApi.Models;
 
 namespace AgendaApi.Extensions.DtoMapper

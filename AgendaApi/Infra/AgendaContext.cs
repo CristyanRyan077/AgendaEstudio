@@ -1,5 +1,6 @@
-﻿using AgendaApi.Domain.Models;
+﻿
 using AgendaApi.Models;
+using AgendaShared.Enums;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

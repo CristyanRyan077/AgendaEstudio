@@ -1,4 +1,4 @@
-﻿using AgendaApi.Domain.DTOs;
+﻿using AgendaShared.DTOs;
 using AgendaApi.Infra;
 using AgendaApi.Infra.Interfaces;
 using AgendaApi.Models;

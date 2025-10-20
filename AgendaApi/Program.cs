@@ -20,7 +20,7 @@ builder.Services
     {
         o.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
         o.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
-        o.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+        
     });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -56,7 +56,7 @@ builder.Services.AddCors(opt =>
                 "http://localhost:5000",
                 "http://10.0.2.2:5173",  // web local via emulador
                 "http://10.0.2.2:5000",  // API via emulador Android
-                "http://192.168.30.112"
+                "https://192.168.30.121"
 
             )
             .SetIsOriginAllowedToAllowWildcardSubdomains()

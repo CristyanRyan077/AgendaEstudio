@@ -1,7 +1,7 @@
 ﻿using AgendaApi.Models;
 using System.ComponentModel.DataAnnotations;
 
-namespace AgendaApi.Domain.Models
+namespace AgendaShared.Enums
 {
     public class AgendamentoEtapa
     {

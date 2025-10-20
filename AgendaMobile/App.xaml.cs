@@ -1,15 +1,19 @@
-﻿namespace AgendaMobile
+﻿using AgendaMobile.Pages;
+using AgendaMobile.Services;
+
+namespace AgendaMobile
 {
+
     public partial class App : Application
     {
-        public App()
+        private readonly IApiService _apiService;
+        public App(IApiService apiService)
         {
             InitializeComponent();
+            _apiService = apiService;
+            MainPage = new NavigationPage(new LoadingPage(_apiService));
         }
 
-        protected override Window CreateWindow(IActivationState? activationState)
-        {
-            return new Window(new AppShell());
-        }
+
     }
 }
