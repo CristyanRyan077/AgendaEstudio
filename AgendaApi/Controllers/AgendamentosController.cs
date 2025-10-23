@@ -63,9 +63,15 @@ namespace AgendaApi.Controllers
             {
                 Id = a.Id,
                 Data = a.Data,
+                Tema = a.Tema,
                 Horario = a.Horario,
                 ClienteId = a.ClienteId,
-                ServicoId = a.ServicoId
+                Cliente = a.Cliente == null ? null : new ClienteResumoDto
+                {
+                    Id = a.Cliente.Id,
+                    Nome = a.Cliente.Nome,
+                    Telefone = a.Cliente.Telefone
+                }
             });
         }
 

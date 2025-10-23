@@ -17,10 +17,14 @@ namespace AgendaWPF
     /// </summary>
     public partial class MainWindow : Window
     {
-
-        public MainWindow()
+        private readonly IServiceProvider _sp;
+        public MainViewModel viewmodel { get; }
+        public MainWindow(MainViewModel vm)
         {
             InitializeComponent();
+            viewmodel = vm;
+            DataContext = viewmodel;
+
         }
     }
 }

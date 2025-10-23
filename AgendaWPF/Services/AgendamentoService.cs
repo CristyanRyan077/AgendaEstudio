@@ -15,13 +15,13 @@ namespace AgendaWPF.Services
         Task<List<AgendamentoDto>> ObterAgendamentosAsync();
         Task<List<AgendamentoDto>> ObterAgendamentosPorPeriodo(DateTime inicio, DateTime fim);
     }
+
     public class AgendamentoService : IAgendamentoService
     {
-        private readonly HttpClient _http;
-        public AgendamentoService()
+        private static readonly HttpClient _http = new HttpClient
         {
-            _http = new HttpClient { BaseAddress = new Uri("http://192.168.30.121:5000/") };
-        }
+            BaseAddress = new Uri("http://192.168.30.121:5000/") // endereço da sua API
+        };
         public async Task<List<AgendamentoDto>> ObterAgendamentosAsync()
         {
             try

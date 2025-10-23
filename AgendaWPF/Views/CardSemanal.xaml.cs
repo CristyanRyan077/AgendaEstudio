@@ -28,6 +28,7 @@ namespace AgendaWPF.Views
             InitializeComponent();
             vm = agendaVm;
             DataContext = vm;
+            Loaded += async (_, __) => await vm.InicializarAsync();
         }
     }
 }

@@ -4,15 +4,19 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:AgendaWPF.ViewModels"   xmlns:hc="https://handyorg.github.io/handycontrol"
-        mc:Ignorable="d" Background="LightBlue"  d:DataContext="{d:DesignInstance Type=vm:MainViewModel, IsDesignTimeCreatable=True}"
+        mc:Ignorable="d" Background="LightBlue"  d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
         Title="MainWindow">
     <Grid>
         <DockPanel>
             <!-- Topo fixo -->
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
-                <Button Content="Agenda" Command="{Binding IrParaSemanalCommand}"/>
-                <Button Content="Clientes" Command="{Binding IrParaClientesCommand}"/>
+                <Button Content="Agenda" Height="60" Width="55"
+                        BorderBrush="Black" Command="{Binding IrParaSemanalCommand}"/>
+
+                <Button Content="Clientes" Height="60" Width="55"
+                        Command="{Binding IrParaClientesCommand}"/>
             </StackPanel>
+            <ContentControl Content="{Binding ViewAtual}"/>
         </DockPanel>
 
     </Grid>

@@ -55,10 +55,13 @@ namespace AgendaApi.Repositories
         }
         public async Task<IEnumerable<Agendamento>> GetPorPeriodoAsync(DateTime inicio, DateTime fim)
         {
+            var fimDoDia = fim.Date.AddDays(1).AddTicks(-1);
+
             return await _context.Agendamentos
+                .AsNoTracking()
                 .Include(a => a.Cliente)
                 .Include(a => a.Servico)
-                .Where(a => a.Data.Date >= inicio.Date && a.Data.Date <= fim.Date)
+                 .Where(a => a.Data >= inicio.Date && a.Data <= fimDoDia)
                 .OrderBy(a => a.Data)
                 .ThenBy(a => a.Horario)
                 .ToListAsync();

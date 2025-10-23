@@ -19,7 +19,10 @@ namespace AgendaWPF.ViewModels
         public AgendaViewModel(IAgendamentoService agendamentoService)
         {
             _agendamentoService = agendamentoService;
-            _ = CarregarSemanaAtualAsync();
+        }
+        public async Task InicializarAsync()
+        {
+            await CarregarSemanaAtualAsync();
         }
         public async Task CarregarSemanaAtualAsync()
         {

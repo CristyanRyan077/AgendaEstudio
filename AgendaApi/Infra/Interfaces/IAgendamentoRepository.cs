@@ -1,4 +1,5 @@
 ﻿using AgendaApi.Models;
+using AgendaShared.DTOs;
 
 namespace AgendaApi.Interfaces
 {
