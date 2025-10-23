@@ -32,7 +32,14 @@ namespace AgendaApi.Extensions.DtoMapper
             Horario = entity.Horario,
             Tema = entity.Tema,
             Status = entity.Status,
-            ValorPago = entity.ValorPago
+            ValorPago = entity.ValorPago,
+
+            Cliente = entity.Cliente == null ? null : new ClienteResumoDto
+            {
+                Id = entity.Cliente.Id,
+                Nome = entity.Cliente.Nome,
+                Telefone = entity.Cliente.Telefone
+            }
         };
         public static void UpdateEntity(this Agendamento ag, AgendamentoUpdateDto dto)
         {

@@ -24,12 +24,14 @@ namespace AgendaApi.Controllers
             var agendamentos = await _service.GetAllAsync();
             return Ok(agendamentos);
         }
+
         [HttpGet("{id:int}")]
         public async Task<ActionResult<AgendamentoDto>> GetById(int id)
         {
             var agendamento = await _service.GetByIdAsync(id);
             return Ok(agendamento); // se não existir, o middleware vai lançar NotFoundException
         }
+
         // POST: api/v1/agendamento
         [HttpPost]
         public async Task<ActionResult<AgendamentoDto>> Create(AgendamentoCreateDto dto)
@@ -37,6 +39,7 @@ namespace AgendaApi.Controllers
             var novoAgendamento = await _service.CreateAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = novoAgendamento.Id }, novoAgendamento);
         }
+
         // PUT: api/v1/agendamento/5
         [HttpPut("{id:int}")]
         public async Task<ActionResult<AgendamentoDto>> Update(int id, AgendamentoUpdateDto dto)
@@ -44,12 +47,26 @@ namespace AgendaApi.Controllers
             var atualizado = await _service.UpdateAsync(id, dto);
             return Ok(atualizado);
         }
+
         // DELETE: api/v1/agendamento/5
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
             await _service.DeleteAsync(id);
             return NoContent();
+        }
+        [HttpGet("periodo")]
+        public async Task<IEnumerable<AgendamentoDto>> ObterAgendamentos([FromQuery] DateTime inicio, DateTime fim)
+        {
+            var agendamentos = await _service.ObterPorPeriodoAsync(inicio, fim);
+            return agendamentos.Select(a => new AgendamentoDto
+            {
+                Id = a.Id,
+                Data = a.Data,
+                Horario = a.Horario,
+                ClienteId = a.ClienteId,
+                ServicoId = a.ServicoId
+            });
         }
 
 

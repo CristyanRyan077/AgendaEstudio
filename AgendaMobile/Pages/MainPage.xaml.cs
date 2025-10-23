@@ -1,4 +1,5 @@
-﻿using AgendaShared.DTOs;
+﻿using AgendaMobile.ViewModels;
+using AgendaShared.DTOs;
 
 namespace AgendaMobile
 {
@@ -6,16 +7,12 @@ namespace AgendaMobile
     {
         private readonly List<AgendamentoDto> _agendamentos;
         private readonly List<ClienteDto> _clientes;
+        private readonly CalendarioViewModel _viewModel;
 
-        public MainPage(List<AgendamentoDto> agendamentos, List<ClienteDto> clientes)
+        public MainPage(CalendarioViewModel viewmodel)
         {
             InitializeComponent();
-
-            _agendamentos = agendamentos;
-            _clientes = clientes;
-
-            //AgendamentosListView.ItemsSource = agendamentos;
-            //ClientesListView.ItemsSource = clientes;
+            BindingContext = viewmodel;
 
 
         }

@@ -53,6 +53,17 @@ namespace AgendaApi.Repositories
                 await _context.SaveChangesAsync();
             }
         }
+        public async Task<IEnumerable<Agendamento>> GetPorPeriodoAsync(DateTime inicio, DateTime fim)
+        {
+            return await _context.Agendamentos
+                .Include(a => a.Cliente)
+                .Include(a => a.Servico)
+                .Where(a => a.Data.Date >= inicio.Date && a.Data.Date <= fim.Date)
+                .OrderBy(a => a.Data)
+                .ThenBy(a => a.Horario)
+                .ToListAsync();
+        }
+
 
     } 
 } 

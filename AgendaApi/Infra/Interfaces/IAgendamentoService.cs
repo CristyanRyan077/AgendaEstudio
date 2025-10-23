@@ -11,5 +11,6 @@ namespace AgendaApi.Interfaces
         Task<AgendamentoDto> CreateAsync(AgendamentoCreateDto dto);
         Task<AgendamentoDto?> UpdateAsync(int id, AgendamentoUpdateDto dto);
         Task<bool> DeleteAsync(int id);
+        Task<IEnumerable<AgendamentoDto>> ObterPorPeriodoAsync(DateTime inicio, DateTime fim);
     }
 }

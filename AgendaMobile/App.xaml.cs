@@ -1,4 +1,5 @@
-﻿using AgendaMobile.Pages;
+﻿using AgendaMobile.Helpers;
+using AgendaMobile.Pages;
 using AgendaMobile.Services;
 
 namespace AgendaMobile
@@ -11,7 +12,7 @@ namespace AgendaMobile
         {
             InitializeComponent();
             _apiService = apiService;
-            MainPage = new NavigationPage(new LoadingPage(_apiService));
+            MainPage = new NavigationPage(ServiceHelper.GetService<LoadingPage>());
         }
 
 

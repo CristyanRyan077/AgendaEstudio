@@ -56,5 +56,10 @@ namespace AgendaApi.Services
             await _repository.DeleteAsync(agendamento.Id);
             return true;
         }
+        public async Task<IEnumerable<AgendamentoDto>> ObterPorPeriodoAsync(DateTime inicio, DateTime fim)
+        {
+            var agendamentos = await _repository.GetPorPeriodoAsync(inicio, fim);
+            return agendamentos.Select(a => a.ToDto());
+        }
     }
 }

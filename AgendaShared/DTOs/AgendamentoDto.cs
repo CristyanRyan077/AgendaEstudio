@@ -17,6 +17,11 @@ namespace AgendaShared.DTOs
         public StatusAgendamento Status { get; set; }
         public decimal ValorPago { get; set; }
         public bool EstaPago { get; set; }
+
+        public ClienteResumoDto? Cliente { get; set; }
+        public ServicoResumoDto? Servico { get; set; }
+        public PacoteResumoDto? Pacote { get; set; }
+        public CriancaResumoDto? Crianca { get; set; }
     }
 
     public class AgendamentoCreateDto
@@ -43,5 +48,28 @@ namespace AgendaShared.DTOs
         public string? Tema { get; set; }
         public decimal Valor { get; set; }
         public StatusAgendamento Status { get; set; }
+    }
+    public class ClienteResumoDto
+    {
+        public int Id { get; set; }
+        public string Nome { get; set; } = string.Empty;
+        public string Telefone { get; set; } = string.Empty;    
+    }
+    public class ServicoResumoDto
+    {
+        public int Id { get; set; }
+        public string Nome { get; set; } = string.Empty;
+    }
+    public class PacoteResumoDto
+    {
+        public int Id { get; set; }
+        public string Nome { get; set; } = string.Empty;
+        public decimal Valor { get; set; }
+    }
+    public class CriancaResumoDto
+    {
+        public int Id { get; set; }
+        public string Nome { get; set; } = string.Empty;
+        public Genero genero { get; set; }
     }
 }

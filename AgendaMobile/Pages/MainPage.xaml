@@ -1,12 +1,87 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="AgendaMobile.MainPage">
+             x:Class="AgendaMobile.MainPage"
+             xmlns:vm="clr-namespace:AgendaMobile.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" xmlns:controls="clr-namespace:Plugin.Maui.Calendar.Controls;assembly=Plugin.Maui.Calendar">
+    <ContentPage.Resources>
+        <DataTemplate x:Key="DiaTemplate">
+            <Border Stroke="Gray"
+                    StrokeShape="RoundRectangle 10"
+                    Margin="2">
+                <VerticalStackLayout Padding="5"
+                                     HorizontalOptions="Center"
+                                     VerticalOptions="Center">
+                    <Button Text="{Binding DiaTexto}"
+                            Command="{Binding SelecionarDiaCommand}"
+                            CommandParameter="{Binding}"
+                            TextColor="{Binding CorTexto}"
+                            FontSize="16"
+                            CornerRadius="8"
+                            HeightRequest="40"
+                            WidthRequest="50" />
+                </VerticalStackLayout>
+            </Border>
+        </DataTemplate>
+    </ContentPage.Resources>
+    <ContentPage.BindingContext>
+        <vm:CalendarioDesignViewModel d:IsDesignTimeCreatable="True" />
+    </ContentPage.BindingContext>
 
-    <ScrollView>
         <VerticalStackLayout>
-            <ListView x:Name="AgendamentosListView"/>
+            <HorizontalStackLayout Spacing="20">
+                <Button Text="◀" Command="{Binding MesAnteriorCommand}" WidthRequest="50" />
+                <Label Text="{Binding MesAtual, StringFormat='{0:MMMM yyyy}'}" FontSize="20" />
+                <Button Text="▶" Command="{Binding ProximoMesCommand}" WidthRequest="50" />
+            </HorizontalStackLayout>
+
+            <!-- Grade do calendário -->
+        <Grid x:Name="CalendarioGrid" RowDefinitions="Auto,*"
+              ColumnDefinitions="*,*,*,*,*,*,*"
+                                      BindableLayout.ItemsSource="{Binding Dias}"
+                        BindableLayout.ItemTemplate="{StaticResource DiaTemplate}"
+              RowSpacing="5" ColumnSpacing="5">
+            <Grid.Resources>
+                <DataTemplate x:Key="DiaTemplate">
+                    <Border Stroke="Gray"
+                StrokeShape="RoundRectangle 10"
+                Margin="2">
+                        <VerticalStackLayout Padding="5"
+                                 HorizontalOptions="Center"
+                                 VerticalOptions="Center">
+                            <Button Text="{Binding DiaTexto}"
+                        Command="{Binding SelecionarDiaCommand}"
+                        CommandParameter="{Binding}"
+                        TextColor="{Binding CorTexto}"
+                        FontSize="16"
+                        CornerRadius="8"
+                        HeightRequest="40"
+                        WidthRequest="50" />
+                        </VerticalStackLayout>
+                    </Border>
+                </DataTemplate>
+            </Grid.Resources>
+
+        </Grid>
+
+            <!-- Agendamentos do dia -->
+            <Label Text="Agendamentos do dia:" FontAttributes="Bold" Margin="0,10,0,0" />
+            <CollectionView ItemsSource="{Binding AgendamentosSelecionados}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <HorizontalStackLayout Padding="5">
+                            <Label Text="{Binding HorarioFormatado}" FontAttributes="Bold"/>
+                            <Label Text=" ─ "/>
+                            <Label Text="{Binding Cliente.Nome}" Margin="0,0,5,0" />
+                            <Label Text="{Binding Cliente.Telefone}" Margin="0,0,5,0"/>
+                            <Label Text="{Binding Servico.Nome}"/>
+
+                        </HorizontalStackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
         </VerticalStackLayout>
-    </ScrollView>
 
 </ContentPage>
