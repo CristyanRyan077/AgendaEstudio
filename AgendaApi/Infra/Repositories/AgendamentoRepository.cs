@@ -61,7 +61,9 @@ namespace AgendaApi.Repositories
                 .AsNoTracking()
                 .Include(a => a.Cliente)
                 .Include(a => a.Servico)
-                 .Where(a => a.Data >= inicio.Date && a.Data <= fimDoDia)
+                .Include(a => a.Pacote)
+                .Include(a => a.Crianca)
+                .Where(a => a.Data >= inicio.Date && a.Data <= fimDoDia)
                 .OrderBy(a => a.Data)
                 .ThenBy(a => a.Horario)
                 .ToListAsync();

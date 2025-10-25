@@ -11,22 +11,21 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace AgendaWPF.Views
 {
     /// <summary>
-    /// Interação lógica para ClientesView.xam
+    /// Lógica interna para AgendarView.xaml
     /// </summary>
-    public partial class ClientesView : UserControl
+    public partial class AgendarView : Window
     {
-        public ClientesViewModel viewmodel;
-        public ClientesView(ClientesViewModel vm)
+        public AgendaViewModel viewmodel { get; }
+        public AgendarView(AgendaViewModel vm)
         {
             InitializeComponent();
             viewmodel = vm;
-            DataContext = viewmodel;
+            DataContext = vm;
         }
     }
 }

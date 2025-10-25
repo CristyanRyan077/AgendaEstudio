@@ -6,18 +6,18 @@ namespace AgendaApi.Extensions.DtoMapper
     public static class AgendamentoMapper
     {
         public static Agendamento ToEntity(this AgendamentoCreateDto dto) =>
-     new Agendamento
-     {
-         ClienteId = dto.ClienteId,
-         CriancaId = dto.CriancaId,
-         ServicoId = dto.ServicoId,
-         PacoteId = dto.PacoteId,
-         Valor = dto.Valor,
-         Data = dto.Data,
-         Horario = dto.Horario,
-         Tema = dto.Tema,
-         Status = dto.Status
-     };
+         new Agendamento
+         {
+             ClienteId = dto.ClienteId,
+             CriancaId = dto.CriancaId,
+             ServicoId = dto.ServicoId,
+             PacoteId = dto.PacoteId,
+             Valor = dto.Valor,
+             Data = dto.Data,
+             Horario = dto.Horario,
+             Tema = dto.Tema,
+             Status = dto.Status
+         };
 
         public static AgendamentoDto ToDto(this Agendamento entity) =>
         new AgendamentoDto
@@ -39,6 +39,25 @@ namespace AgendaApi.Extensions.DtoMapper
                 Id = entity.Cliente.Id,
                 Nome = entity.Cliente.Nome,
                 Telefone = entity.Cliente.Telefone
+            },
+            Servico = entity.Servico == null ? null : new ServicoResumoDto
+            {
+                Id = entity.Servico.Id,
+                Nome = entity.Servico.Nome,
+            },
+            Pacote = entity.Pacote == null ? null : new PacoteResumoDto
+            {
+                Id = entity.Pacote.Id,
+                Nome = entity.Pacote.Nome,
+                Valor = entity.Pacote.Valor
+            },
+            Crianca = entity.Crianca == null ? null : new CriancaResumoDto
+            {
+                Id = entity.Crianca.Id,
+                Genero = entity.Crianca.Genero,
+                Nome = entity.Crianca.Nome,
+                Idade = entity.Crianca.Idade,
+                IdadeUnidade = entity.Crianca.IdadeUnidade
             }
         };
         public static void UpdateEntity(this Agendamento ag, AgendamentoUpdateDto dto)

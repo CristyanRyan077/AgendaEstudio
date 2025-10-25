@@ -14,10 +14,18 @@ namespace AgendaWPF.ViewModels
         [ObservableProperty] private object viewAtual;
         public IRelayCommand IrParaSemanalCommand { get; }
         public IRelayCommand IrParaClientesCommand { get; }
-        public MainViewModel(CardSemanal cardView, ClientesView clientesView)
+        public IRelayCommand IrParaCalendarioCommand { get; }
+        public MainViewModel(
+            CardSemanal cardView,
+            ClientesView clientesView,
+            CalendarioView calendarioView)
+
         {
             IrParaSemanalCommand = new RelayCommand(() => ViewAtual = cardView);
             IrParaClientesCommand = new RelayCommand(() => ViewAtual = clientesView);
+            IrParaCalendarioCommand = new RelayCommand(() => ViewAtual = calendarioView);
+          //IrparaAgendarCommand => CardSemanal.xaml.cs
+
 
             ViewAtual = cardView; // Tela inicial
         }

@@ -21,6 +21,8 @@ namespace AgendaShared.DTOs
         public string NomeComId => $"{Nome} (ID: {Id})";
         public List<CriancaDto>? Criancas { get; set; }
         public List<AgendamentoDto>? Agendamentos { get; set; }
+
+
     }
     public class ClienteCreateDto
     {

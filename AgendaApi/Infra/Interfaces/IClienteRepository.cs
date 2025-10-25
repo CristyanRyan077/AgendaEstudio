@@ -1,4 +1,5 @@
-﻿using AgendaApi.Models;
+﻿using AgendaApi.Domain.Models;
+using AgendaApi.Models;
 
 namespace AgendaApi.Infra.Interfaces
 {
@@ -9,5 +10,6 @@ namespace AgendaApi.Infra.Interfaces
         Task AddAsync(Cliente cliente);
         Task UpdateAsync(Cliente cliente);
         Task DeleteAsync(int id);
+        Task<PagedResult<Cliente>> GetPaginadoAsync(int page, int pageSize, string? nome);
     }
 }

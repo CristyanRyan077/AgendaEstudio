@@ -1,5 +1,6 @@
-﻿using AgendaShared.DTOs;
+﻿using AgendaApi.Domain.Models;
 using AgendaApi.Models;
+using AgendaShared.DTOs;
 
 namespace AgendaApi.Infra.Interfaces
 {
@@ -11,5 +12,6 @@ namespace AgendaApi.Infra.Interfaces
         Task<ClienteDto> CreateAsync(ClienteCreateDto dto);
         Task<ClienteDto?> UpdateAsync(int id, ClienteUpdateDto dto);
         Task<bool> DeleteAsync(int id);
+        Task<PagedResult<ClienteDto>> ObterPaginadoAsync(int page, int pageSize, string? nome);
     }
 }

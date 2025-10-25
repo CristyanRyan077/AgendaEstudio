@@ -1,21 +1,58 @@
 ﻿<Window x:Class="AgendaWPF.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" WindowState="Maximized"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:vm="clr-namespace:AgendaWPF.ViewModels"   xmlns:hc="https://handyorg.github.io/handycontrol"
+        xmlns:vm="clr-namespace:AgendaWPF.ViewModels"   xmlns:hc="https://handyorg.github.io/handycontrol" xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d" Background="LightBlue"  d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
         Title="MainWindow">
     <Grid>
         <DockPanel>
-            <!-- Topo fixo -->
-            <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
-                <Button Content="Agenda" Height="60" Width="55"
-                        BorderBrush="Black" Command="{Binding IrParaSemanalCommand}"/>
+            <!-- Barra de navegação -->
+            <Border DockPanel.Dock="Top" Background="#2D2D2D">
+                <UniformGrid Rows="1" Columns="5" HorizontalAlignment="Stretch">
 
-                <Button Content="Clientes" Height="60" Width="55"
-                        Command="{Binding IrParaClientesCommand}"/>
-            </StackPanel>
+                    <!-- Botão Agenda -->
+                    <Button  Style="{StaticResource NavButtonStyle}" Command="{Binding IrParaSemanalCommand}">
+                        <StackPanel>
+                            <materialDesign:PackIcon Kind="BookCheck" Height="28" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Agenda"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Botão Clientes -->
+                    <Button  Style="{StaticResource NavButtonStyle}" Command="{Binding IrParaClientesCommand}">
+                        <StackPanel>
+                            <materialDesign:PackIcon Kind="UserAdd" Height="28" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Clientes"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Botão Calendário -->
+                    <Button Style="{StaticResource NavButtonStyle}" Command="{Binding IrParaCalendarioCommand}">
+                        <StackPanel>
+                            <materialDesign:PackIcon Kind="Calendar" Height="28" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Calendário"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Botão Financeiro -->
+                    <Button Style="{StaticResource NavButtonStyle}">
+                        <StackPanel>
+                            <materialDesign:PackIcon Kind="AccountCash" Height="28" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Financeiro"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Botão Entrega -->
+                    <Button Style="{StaticResource NavButtonStyle}">
+                        <StackPanel>
+                            <materialDesign:PackIcon Kind="PhotoCamera" Height="28" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Entrega"/>
+                        </StackPanel>
+                    </Button>
+                </UniformGrid>
+            </Border>
             <ContentControl Content="{Binding ViewAtual}"/>
         </DockPanel>
 

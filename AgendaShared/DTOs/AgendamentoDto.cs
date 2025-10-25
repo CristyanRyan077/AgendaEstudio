@@ -70,6 +70,8 @@ namespace AgendaShared.DTOs
     {
         public int Id { get; set; }
         public string Nome { get; set; } = string.Empty;
-        public Genero genero { get; set; }
+        public int Idade { get; set; }
+        public IdadeUnidade IdadeUnidade { get; set; }
+        public Genero Genero { get; set; }
     }
 }

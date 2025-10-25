@@ -56,23 +56,14 @@ namespace AgendaApi.Controllers
             return NoContent();
         }
         [HttpGet("periodo")]
-        public async Task<IEnumerable<AgendamentoDto>> ObterAgendamentos([FromQuery] DateTime inicio, DateTime fim)
+        public async Task<ActionResult<IEnumerable<AgendamentoDto>>> ObterAgendamentos([FromQuery] DateTime inicio, DateTime fim)
         {
             var agendamentos = await _service.ObterPorPeriodoAsync(inicio, fim);
-            return agendamentos.Select(a => new AgendamentoDto
-            {
-                Id = a.Id,
-                Data = a.Data,
-                Tema = a.Tema,
-                Horario = a.Horario,
-                ClienteId = a.ClienteId,
-                Cliente = a.Cliente == null ? null : new ClienteResumoDto
-                {
-                    Id = a.Cliente.Id,
-                    Nome = a.Cliente.Nome,
-                    Telefone = a.Cliente.Telefone
-                }
-            });
+
+            if (!agendamentos.Any())
+                return NotFound("Nenhum agendamento encontrado no período informado.");
+
+            return Ok(agendamentos);
         }
 
 

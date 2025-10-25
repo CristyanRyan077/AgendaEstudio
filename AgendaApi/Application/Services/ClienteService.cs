@@ -1,9 +1,10 @@
-﻿using AgendaShared.DTOs;
+﻿using AgendaApi.Domain.Models;
 using AgendaApi.Extensions;
 using AgendaApi.Extensions.DtoMapper;
 using AgendaApi.Infra.Interfaces;
 using AgendaApi.Infra.Repositories;
 using AgendaApi.Models;
+using AgendaShared.DTOs;
 
 namespace AgendaApi.Application.Services
 {
@@ -51,6 +52,18 @@ namespace AgendaApi.Application.Services
             var cliente = await GetClienteOrThrowAsync(id);
             await _repository.DeleteAsync(cliente.Id);
             return true;
+        }
+        public async Task<PagedResult<ClienteDto>> ObterPaginadoAsync(int page, int pageSize, string? nome)
+        {
+            var result = await _repository.GetPaginadoAsync(page, pageSize, nome);
+
+            return new PagedResult<ClienteDto>
+            {
+                Items = result.Items.Select(c => c.ToDto()), // usa seu helper
+                TotalItems = result.TotalItems,
+                Page = result.Page,
+                PageSize = result.PageSize
+            };
         }
     }
 }

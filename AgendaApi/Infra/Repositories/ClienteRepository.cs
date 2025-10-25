@@ -1,4 +1,5 @@
-﻿using AgendaApi.Infra.Interfaces;
+﻿using AgendaApi.Domain.Models;
+using AgendaApi.Infra.Interfaces;
 using AgendaApi.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,6 +31,7 @@ namespace AgendaApi.Infra.Repositories
         {
             return await _context.Clientes
                 .Include(c => c.Criancas)
+                .Include(c => c.Agendamentos)
                 .ToListAsync();
         }
 
@@ -45,5 +47,31 @@ namespace AgendaApi.Infra.Repositories
             _context.Clientes.Update(cliente);
             await _context.SaveChangesAsync();
         }
-    }
+        public async Task<PagedResult<Cliente>> GetPaginadoAsync(int page, int pageSize, string? nome)
+        {
+            var query = _context.Clientes
+                .Include(c => c.Criancas)
+                .Include(c => c.Agendamentos)
+                .AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(nome))
+                query = query.Where(c => c.Nome.Contains(nome));
+
+            var total = await query.CountAsync();
+
+            var clientes = await query
+                .OrderBy(c => c.Nome)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedResult<Cliente>
+            {
+                Items = clientes,
+                TotalItems = total,
+                Page = page,
+                PageSize = pageSize
+            };
+        }
+    };
 }

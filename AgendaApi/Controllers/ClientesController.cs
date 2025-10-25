@@ -1,7 +1,8 @@
-﻿using AgendaShared.DTOs;
+﻿using AgendaApi.Domain.Models;
 using AgendaApi.Infra;
 using AgendaApi.Infra.Interfaces;
 using AgendaApi.Models;
+using AgendaShared.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,12 +33,6 @@ namespace AgendaApi.Controllers
             return Ok(cliente); // se não existir, o middleware vai lançar NotFoundException
         }
 
-
-        /// <summary>
-        /// Cria um novo cliente.
-        /// </summary>
-        /// <response code="201">Cliente criado com sucesso</response>
-        [ProducesResponseType(typeof(ClienteDto), StatusCodes.Status201Created)]
         [HttpPost]
         public async Task<ActionResult<ClienteDto>> Create(ClienteCreateDto dto)
         {
@@ -57,6 +52,18 @@ namespace AgendaApi.Controllers
         {
             await _service.DeleteAsync(id);
             return NoContent();
+        }
+        [HttpGet("paginado")]
+        public async Task<ActionResult<PagedResult<ClienteResumoDto>>> GetClientes(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string? nome = null)
+        {
+            if (page <= 0 || pageSize <= 0)
+                return BadRequest("Parâmetros de paginação inválidos.");
+
+            var result = await _service.ObterPaginadoAsync(page, pageSize,nome);
+            return Ok(result);
         }
     }
 }

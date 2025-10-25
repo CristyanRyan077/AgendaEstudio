@@ -1,6 +1,9 @@
 ﻿using AgendaWPF.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.DirectoryServices.ActiveDirectory;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,14 +24,41 @@ namespace AgendaWPF.Views
     /// </summary>
     public partial class CardSemanal : UserControl
     {
+        private AgendarView? _agendar;
         private readonly IServiceProvider _sp;
         public AgendaViewModel vm { get; }
-        public CardSemanal(AgendaViewModel agendaVm)
+        public CardSemanal(AgendaViewModel agendaVm, IServiceProvider sp)
         {
             InitializeComponent();
             vm = agendaVm;
             DataContext = vm;
+            _sp = sp;
             Loaded += async (_, __) => await vm.InicializarAsync();
+        }
+        public AgendarView GetAgendar()
+        {
+            if (_agendar == null || !_agendar.IsLoaded)
+            {
+                _agendar = _sp.GetRequiredService<AgendarView>();
+                _agendar.Closed += (s, e) => _agendar = null;
+                _agendar.Show();
+            }
+            else
+            {
+                _agendar.Activate();
+            }
+            return _agendar;
+        }
+
+        private void BtnAgenda_Click(object sender, RoutedEventArgs e)
+        {
+            FocusManager.SetFocusedElement(this, this);
+            Keyboard.ClearFocus();
+
+            if (DataContext is AgendaViewModel vm)
+            {
+                GetAgendar();
+            }
         }
     }
 }

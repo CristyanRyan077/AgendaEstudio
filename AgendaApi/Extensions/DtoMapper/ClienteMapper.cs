@@ -28,7 +28,9 @@ namespace AgendaApi.Extensions.DtoMapper
             Instagram = entity.Instagram,
             TotalPagoHistorico = entity.TotalPagoHistorico,
             TotalPagoMesAtual = entity.TotalPagoMesAtual,
-            Status = entity.Status
+            Status = entity.Status,
+            Criancas = entity.Criancas?.Select(x => x.ToDto()).ToList(),
+            Agendamentos = entity.Agendamentos?.Select(x => x.ToDto()).ToList()
         };
         public static void UpdateEntity(this Cliente cliente, ClienteUpdateDto dto)
         {
