@@ -17,6 +17,12 @@ namespace AgendaWPF.ViewModels
         public CalendarioViewModel(IAgendamentoService agendamentoService)
         {
             _agendamentoService = agendamentoService;
+            _ = InicializarAsync();
+        }
+
+        public async Task InicializarAsync()
+        {
+            await Task.Delay(500);
             GerarDiasDoMesAtual();
             RefreshCalendar();
         }
@@ -39,7 +45,7 @@ namespace AgendaWPF.ViewModels
             {
                 dia.Agendamentos.Clear();
 
-                // 🔍 Filtra apenas os agendamentos daquele dia
+                // 🔍 Filtra apenas os agendamentos do periodo selecionado
                  var agsDoDia = agendamentos
                     .Where(a => a.Data.Date == dia.Data.Date); 
 

@@ -21,13 +21,8 @@ namespace AgendaWPF.ViewModels
         public ObservableCollection<DiaAgendamento> DiasSemana { get; set; } = new();
         private readonly IAgendamentoService _agendamentoService;
         private readonly IClienteService _clienteService;
+        [ObservableProperty] private DateTime dataSelecionada = DateTime.Today;
 
-        [ObservableProperty] private bool mostrarSugestoes = false;
-        [ObservableProperty] private bool mostrarSugestoesServico = false;
-        [ObservableProperty] private ClienteDto? clienteSelecionado;
-        [ObservableProperty] private string nomeDigitado = string.Empty;
-        [ObservableProperty] private ClienteDto novoCliente = new();
-        [ObservableProperty] private ObservableCollection<ClienteDto> clientesFiltrados = new();
         [ObservableProperty] private ObservableCollection<ClienteDto> listaClientes = new();
         public AgendaViewModel(IAgendamentoService agendamentoService, IClienteService clienteService)
         {
@@ -37,18 +32,10 @@ namespace AgendaWPF.ViewModels
         }
         public async Task InicializarAsync()
         {
-            await Task.Delay(1500);
+            await Task.Delay(500);
             await CarregarSemanaAtualAsync();
-            await CarregarClientesAsync();
         }
-        public async Task CarregarClientesAsync()
-        {
-            var lista = await _clienteService.ObterClientesAsync() ?? new List<ClienteDto>();
 
-            ListaClientes.Clear();
-            foreach (var c in lista)
-                ListaClientes.Add(c);
-        }
         public async Task CarregarSemanaAtualAsync()
         {
             var inicio = ObterSegundaDaSemana(DateTime.Today);
@@ -69,6 +56,7 @@ namespace AgendaWPF.ViewModels
 
                 DiasSemana.Add(new DiaAgendamento
                 {
+                    Data = dia,
                     Nome = CultureInfo.GetCultureInfo("pt-BR")
                     .TextInfo
                     .ToTitleCase(
@@ -86,36 +74,6 @@ namespace AgendaWPF.ViewModels
             return data.AddDays(-1 * diff).Date;
         }
 
-        // ----------- Metodos De Auto Complete -------------- //
-        partial void OnNomeDigitadoChanged(string value)
-        {
-
-            var termo = value?.ToLower() ?? "";
-            int idProcurado;
-            bool buscaPorId = int.TryParse(termo, out idProcurado);
-            var filtrados = ListaClientes
-             .Where(c =>
-             (!string.IsNullOrEmpty(c.Nome) && c.Nome.ToLower().Contains(termo)) ||
-             (buscaPorId && c.Id == idProcurado))
-             .ToList();
-
-            ClientesFiltrados = new ObservableCollection<ClienteDto>(filtrados);
-
-            MostrarSugestoes = ClientesFiltrados.Any();
-        }
-        partial void OnClienteSelecionadoChanged(ClienteDto? cliente)
-        {
-            if (cliente == null) return;
-
-            NomeDigitado = cliente.Nome;
-
-            NovoCliente.Id = cliente.Id;
-            NovoCliente.Nome = cliente.Nome;
-            NovoCliente.Telefone = cliente.Telefone;
-            NovoCliente.Email = cliente.Email;
-            NovoCliente.Observacao = cliente.Observacao;
-
-            OnPropertyChanged(nameof(NovoCliente));
-        }
+       
     }
 }

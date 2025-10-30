@@ -1,4 +1,4 @@
-﻿namespace AgendaApi.Extensions
+﻿namespace AgendaApi.Extensions.MiddleWares
 {
     public class NotFoundException : Exception
     {

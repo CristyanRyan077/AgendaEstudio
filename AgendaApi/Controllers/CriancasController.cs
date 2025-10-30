@@ -24,6 +24,12 @@ namespace AgendaApi.Controllers
             var item = await _service.GetByIdAsync(id);
             return Ok(item);
         }
+        [HttpGet("{id:int}/by-clienteId")]
+        public async Task<ActionResult<CriancaDto>> GetByClienteId(int id)
+        {
+            var item = await _service.GetByClienteIdAsync(id);
+            return Ok(item);
+        }
 
         [HttpPost]
         public async Task<ActionResult<CriancaDto>> Create(CriancaCreateDto dto)

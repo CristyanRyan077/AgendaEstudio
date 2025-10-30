@@ -1,6 +1,7 @@
 ﻿using AgendaApi.Domain.Models;
 using AgendaApi.Extensions;
 using AgendaApi.Extensions.DtoMapper;
+using AgendaApi.Extensions.MiddleWares;
 using AgendaApi.Infra.Interfaces;
 using AgendaApi.Infra.Repositories;
 using AgendaApi.Models;

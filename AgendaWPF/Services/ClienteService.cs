@@ -16,6 +16,7 @@ namespace AgendaWPF.Services
     {
         Task<List<ClienteDto>> ObterClientesAsync();
         Task<PagedResult<ClienteDto>> GetClientesPaginadoAsync(int page, int pagesize, string? nome);
+        Task<List<CriancaDto>> GetByClienteIdAsync(int id);
     }
     public class ClienteService : IClienteService
     {
@@ -35,6 +36,19 @@ namespace AgendaWPF.Services
             {
                 Debug.WriteLine(ex.ToString());
                 return new List<ClienteDto>();
+            }
+        }
+        public async Task<List<CriancaDto>> GetByClienteIdAsync(int id)
+        {
+            try
+            {
+                var criancasdocliente = await _http.GetFromJsonAsync<List<CriancaDto>>("api/criancas/{id}/by-clienteId");
+                return criancasdocliente ?? new List<CriancaDto>();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.ToString());
+                return new List<CriancaDto>();
             }
         }
         public async Task<PagedResult<ClienteDto>>GetClientesPaginadoAsync(int page, int pagesize, string? nome)

@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AgendaWPF.Views" xmlns:vm="clr-namespace:AgendaWPF.ViewModels"
-        xmlns:controles="clr-namespace:AgendaWPF.Controles" d:DataContext="{d:DesignInstance Type=vm:AgendaViewModel}"
+        xmlns:controles="clr-namespace:AgendaWPF.Controles" d:DataContext="{d:DesignInstance Type=vm:FormAgendamentoVM}"
         mc:Ignorable="d"  xmlns:hc="https://handyorg.github.io/handycontrol" xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         Title="Agendar" Height="700" Width="850">
     <!-- ================== ESTILOS ================== -->
@@ -48,10 +48,10 @@
 
         <!-- ================== FORMULÁRIO PRINCIPAL ================== -->
         <Border Grid.Column="0" Padding="15" Background="#99FFFFFF" CornerRadius="15">
-            <StackPanel Grid.Column="0" VerticalAlignment="Top">
+            <StackPanel Grid.Column="0" Language="pt-BR" VerticalAlignment="Top">
                 <!-- Cabeçalho -->
-                <TextBlock Text="Agendar no dia {dia} de {mes} - {diasemana}"
-                           FontSize="24"
+                <TextBlock Text="{Binding DataSelecionada, StringFormat='Agendar no dia: {0:dddd, dd/MM/yyyy}'}"
+                           FontSize="22"
                            FontWeight="Bold"
                            Foreground="#333"
                            Margin="0,0,0,20" />
@@ -70,7 +70,7 @@
                         <ColumnDefinition Width="100" />
                     </Grid.ColumnDefinitions>
                     <controles:ClienteAutoComplete/>
-                    <hc:TextBox Grid.Column="1"
+                    <hc:TextBox Grid.Column="1" Name="txtIdBusca" LostFocus="txtIdBusca_LostFocus"
                                 Text="{Binding IdBusca, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 hc:InfoElement.Placeholder="ID"/>
                 </Grid>
@@ -80,7 +80,7 @@
                         <ColumnDefinition Width="200" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <hc:TextBox Grid.Column="0"
+                    <hc:TextBox Grid.Column="0" Name="txtTelefone"
                                 Text="{Binding NovoCliente.Telefone,
                                 Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 hc:InfoElement.Placeholder="Telefone"/>
@@ -98,10 +98,20 @@
                 <Grid Margin="0,0,0,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="130" />
+                        <ColumnDefinition Width="170" />
                     </Grid.ColumnDefinitions>
-                    <hc:TextBox Grid.Column="0" Text="{Binding Servico.Nome}" hc:InfoElement.Placeholder="Serviço"/>
-                    <hc:ComboBox Grid.Column="1" Text="{Binding Pacote.Nome}" hc:InfoElement.Placeholder="Pacote"/>
+                    <controles:ServicoAutoComplete/>
+                    <hc:ComboBox Grid.Column="1" IsEditable="False" SelectedItem="{Binding PacoteSelecionado}"
+                                 ItemsSource="{Binding ListaPacotesFiltrada}" hc:InfoElement.Placeholder="Pacote">
+                        <hc:ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Nome}" Margin="0,0,5,0" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding Valor, StringFormat={}{0:C}}" Foreground="Green"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </hc:ComboBox.ItemTemplate>
+                    </hc:ComboBox>
                 </Grid>
 
                 <!-- PAGAMENTO E ENTREGA -->
@@ -112,10 +122,14 @@
                         <ColumnDefinition Width="155" />
                         <ColumnDefinition Width="170" />
                     </Grid.ColumnDefinitions>
-                    <hc:ComboBox Grid.Column="0" Text="{Binding Horario}" hc:InfoElement.Placeholder="Horário"/>
-                    <hc:TextBox Grid.Column="1" Text="{Binding Pago}" hc:InfoElement.Placeholder="Pago"/>
+                    
+                    <hc:ComboBox Grid.Column="0" ItemsSource="{Binding HorariosDisponiveis}"
+                                 SelectedItem="{Binding HorarioTexto,Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 hc:InfoElement.Placeholder="Horário"/>
+                    
+                    <hc:TextBox Grid.Column="1" Text="{Binding NovoPagamento.Valor}" hc:InfoElement.Placeholder="Pago"/>
                     <hc:ComboBox Grid.Column="2"
-                                 ItemsSource="{Binding TipoEntrega}"
+                                 ItemsSource="{Binding TiposEntrega}"
                                  SelectedItem="{Binding TipoSelecionado, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                  hc:InfoElement.Placeholder="Album/Painel/Fotos"/>
                 </Grid>
@@ -134,25 +148,35 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="120" />
                         </Grid.ColumnDefinitions>
-                        <hc:TextBox Grid.Column="0" Text="{Binding Crianca.Nome}" hc:InfoElement.Placeholder="Criança"/>
-                        <hc:ComboBox Grid.Column="1" Text="{Binding Crianca.Genero}" hc:InfoElement.Placeholder="Gênero"/>
+                        <hc:ComboBox Grid.Column="0"                IsEditable="False"
+                                     DisplayMemberPath="Nome"
+                                     ItemsSource="{Binding ListaCriancas}"     
+                                     SelectedItem="{Binding CriancaSelecionada, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     hc:InfoElement.Placeholder="Criança"/>
+
+                        <hc:ComboBox Grid.Column="1" ItemsSource="{Binding GenerosLista}"
+                                     SelectedItem="{Binding CriancaSelecionada.Genero,
+                                     Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     hc:InfoElement.Placeholder="Gênero"/>
                     </Grid>
 
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130" />
-                            <ColumnDefinition Width="200" />
+                            <ColumnDefinition Width="100" />
+                            <ColumnDefinition Width="170" />
+                            <ColumnDefinition Width="180" />
                         </Grid.ColumnDefinitions>
-                        <hc:TextBox Grid.Column="0" Text="{Binding Crianca.Idade}" hc:InfoElement.Placeholder="Idade"/>
+                        <hc:TextBox Grid.Column="0" Text="{Binding CriancaSelecionada.Idade}" hc:InfoElement.Placeholder="Idade"/>
                         <hc:ComboBox Grid.Column="1"
                                      ItemsSource="{Binding IdadesUnidadeDisponiveis}"
-                                     SelectedItem="{Binding Crianca.IdadeUnidade}"
+                                     SelectedItem="{Binding CriancaSelecionada.IdadeUnidade, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      hc:InfoElement.Placeholder="Anos/Meses"/>
                     </Grid>
                 </StackPanel>
 
                 <!-- BOTÃO -->
                 <Button Content="Agendar"
+                        Command="{Binding AgendarCommand}"
                         Width="180"
                         Height="40"
                         FontSize="20"

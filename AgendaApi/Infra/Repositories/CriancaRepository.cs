@@ -37,6 +37,12 @@ namespace AgendaApi.Infra.Repositories
             return await _context.Criancas
                .FirstOrDefaultAsync(c => c.Id == id);
         }
+        public async Task<IEnumerable<Crianca?>> GetByClienteIdAsync(int id)
+        {
+            return await _context.Criancas
+               .Where(c => c.ClienteId == id)
+               .ToListAsync();
+        }
 
         public async Task UpdateAsync(Crianca crianca)
         {

@@ -17,7 +17,7 @@ namespace AgendaShared.DTOs
         public StatusAgendamento Status { get; set; }
         public decimal ValorPago { get; set; }
         public bool EstaPago { get; set; }
-
+        public List<PagamentoDto>? Pagamentos { get; set; }
         public ClienteResumoDto? Cliente { get; set; }
         public ServicoResumoDto? Servico { get; set; }
         public PacoteResumoDto? Pacote { get; set; }
@@ -35,6 +35,8 @@ namespace AgendaShared.DTOs
         public StatusAgendamento Status { get; set; }
         public string? Tema { get; set; }
         public decimal Valor { get; set; }
+
+        public PagamentoCreateDto? PagamentoInicial { get; set; }
     }
 
     public class AgendamentoUpdateDto

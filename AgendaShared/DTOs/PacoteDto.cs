@@ -7,6 +7,7 @@ namespace AgendaShared.DTOs
         public int ServicoId { get; set; }
         public string Nome { get; set; } = string.Empty;
         public decimal Valor { get; set; }
+        public string NomeComValor => $"{Nome} (R${Valor})";
     }
 
     public class PacoteCreateDto

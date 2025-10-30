@@ -1,4 +1,5 @@
 ﻿using AgendaApi.Models;
+using AgendaWPF.Models;
 using AgendaWPF.Services;
 using AgendaWPF.ViewModels;
 using AgendaWPF.Views;
@@ -28,17 +29,21 @@ namespace AgendaWPF
 
             services.AddTransient<IAgendamentoService, AgendamentoService>();
             services.AddTransient<IClienteService, ClienteService>();
+            services.AddTransient<IServicoService, ServicoService>();
 
             services.AddSingleton<AgendaViewModel>();
             services.AddSingleton<MainViewModel>();
             services.AddSingleton<CalendarioViewModel>();
             services.AddSingleton<ClientesViewModel>();
+            services.AddSingleton<FormAgendamentoVM>();
 
             services.AddTransient<MainWindow>();
             services.AddTransient<CardSemanal>();
             services.AddTransient<ClientesView>();
             services.AddTransient<CalendarioView>();
             services.AddTransient<AgendarView>();
+
+            services.AddSingleton<AgendaState>();
 
             ServiceProvider = services.BuildServiceProvider();
             var mainwindow = ServiceProvider.GetRequiredService<MainWindow>();

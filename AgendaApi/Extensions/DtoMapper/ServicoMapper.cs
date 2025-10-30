@@ -17,7 +17,8 @@ namespace AgendaApi.Extensions.DtoMapper
             {
                 Id = entity.Id,
                 Nome = entity.Nome,
-                PossuiCrianca = entity.PossuiCrianca
+                PossuiCrianca = entity.PossuiCrianca,
+                Pacotes = entity.Pacotes?.Select(x => x.ToDto()).ToList(),
             };
 
         public static void UpdateEntity(this Servico entity, ServicoUpdateDto dto)

@@ -3,6 +3,7 @@ using AgendaApi.Extensions;
 using AgendaApi.Extensions.DtoMapper;
 using AgendaApi.Infra.Interfaces;
 using AgendaApi.Models;
+using AgendaApi.Extensions.MiddleWares;
 
 namespace AgendaApi.Application.Services
 {

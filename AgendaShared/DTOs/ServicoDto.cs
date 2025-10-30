@@ -7,7 +7,7 @@ namespace AgendaShared.DTOs
         public int Id { get; set; }
         public string Nome { get; set; } = string.Empty;
         public bool PossuiCrianca { get; set; }
-        public IEnumerable<PacoteDto>? Pacotes { get; set; }
+        public List<PacoteDto>? Pacotes { get; set; }
     }
 
     public class ServicoCreateDto

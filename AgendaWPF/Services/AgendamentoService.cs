@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 
 namespace AgendaWPF.Services
 {
@@ -14,13 +15,15 @@ namespace AgendaWPF.Services
     {
         Task<List<AgendamentoDto>> ObterAgendamentosAsync();
         Task<List<AgendamentoDto>> ObterAgendamentosPorPeriodo(DateTime inicio, DateTime fim);
+        Task<PagamentoDto> AddPagamentoAsync(int agendamentoId, PagamentoCreateDto dto, CancellationToken ct = default);
+        Task<AgendamentoDto> AgendarAsync(AgendamentoCreateDto dto, CancellationToken ct = default);
     }
 
     public class AgendamentoService : IAgendamentoService
     {
         private static readonly HttpClient _http = new HttpClient
         {
-            BaseAddress = new Uri("http://192.168.30.121:5000/") // endereço da sua API
+            BaseAddress = new Uri("http://192.168.30.121:5000/") 
         };
         public async Task<List<AgendamentoDto>> ObterAgendamentosAsync()
         {
@@ -56,18 +59,24 @@ namespace AgendaWPF.Services
                 return new List<AgendamentoDto>();
             }
         }
-        public async Task<List<ServicoDto>> ObterServicosAsync()
+        public async Task<PagamentoDto> AddPagamentoAsync(int agendamentoId, PagamentoCreateDto dto, CancellationToken ct = default)
         {
-            try
-            {
-                var servicos = await _http.GetFromJsonAsync<List<ServicoDto>>("api/servicos");
-                return servicos ?? new List<ServicoDto>();
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex.ToString());
-                return new List<ServicoDto>();
-            }
+            var url = $"api/agendamentos/{agendamentoId}/pagamentos";
+            using var resp = await _http.PostAsJsonAsync(url, dto, ct);
+            if (resp.IsSuccessStatusCode)
+                return await resp.Content.ReadFromJsonAsync<PagamentoDto>(cancellationToken: ct);
+            else
+                throw new Exception($"Erro ao adicionar pagamento: {resp.StatusCode} - {await resp.Content.ReadAsStringAsync(ct)}");
         }
+        public async Task<AgendamentoDto> AgendarAsync(AgendamentoCreateDto dto, CancellationToken ct = default)
+        {
+            var url = $"api/agendamentos/";
+            var resp = await _http.PostAsJsonAsync(url, dto, ct);
+            if (resp.IsSuccessStatusCode)
+                return await resp.Content.ReadFromJsonAsync<AgendamentoDto>(cancellationToken: ct);
+            else
+                throw new Exception($"Erro ao agendar: {resp.StatusCode} - {await resp.Content.ReadAsStringAsync(ct)}");
+        }
+        
     }
 }

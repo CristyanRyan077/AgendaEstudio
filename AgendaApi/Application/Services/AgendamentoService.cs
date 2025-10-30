@@ -1,5 +1,7 @@
 ﻿using AgendaApi.Extensions;
 using AgendaApi.Extensions.DtoMapper;
+using AgendaApi.Extensions.MiddleWares;
+using AgendaApi.Infra.Interfaces;
 using AgendaApi.Interfaces;
 using AgendaApi.Models;
 using AgendaShared.DTOs;
@@ -10,10 +12,12 @@ namespace AgendaApi.Services
     public class AgendamentoService : IAgendamentoService
     {
         private readonly IAgendamentoRepository _repository;
+        private readonly IPagamentoRepository _pagamentoRepository;
 
-        public AgendamentoService(IAgendamentoRepository repository)
+        public AgendamentoService(IAgendamentoRepository repository, IPagamentoRepository pagamentoRepository)
         {
             _repository = repository;
+            _pagamentoRepository = pagamentoRepository;
         }
         public async Task<Agendamento> GetAgendamentoOrThrowAsync(int id)
         {
@@ -37,6 +41,18 @@ namespace AgendaApi.Services
         {
             var agendamento = dto.ToEntity();
             await _repository.AddAsync(agendamento);
+            if (dto.PagamentoInicial is not null)
+            {
+                var p = new Pagamento
+                {
+                    AgendamentoId = agendamento.Id,
+                    Valor = dto.PagamentoInicial.Valor,
+                    DataPagamento = dto.PagamentoInicial.DataPagamento == default ? DateTime.UtcNow : dto.PagamentoInicial.DataPagamento,
+                    Metodo = dto.PagamentoInicial.Metodo,
+                    Observacao = dto.PagamentoInicial.Observacao
+                };
+                await _pagamentoRepository.AddAsync(p);
+            }
             return agendamento.ToDto();
         }
 

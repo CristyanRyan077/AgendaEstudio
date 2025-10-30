@@ -63,6 +63,7 @@ namespace AgendaApi.Repositories
                 .Include(a => a.Servico)
                 .Include(a => a.Pacote)
                 .Include(a => a.Crianca)
+                .Include(a => a.Pagamentos)
                 .Where(a => a.Data >= inicio.Date && a.Data <= fimDoDia)
                 .OrderBy(a => a.Data)
                 .ThenBy(a => a.Horario)

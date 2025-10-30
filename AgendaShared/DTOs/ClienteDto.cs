@@ -31,7 +31,9 @@ namespace AgendaShared.DTOs
         public string? Email { get; set; } 
         public string? Observacao { get; set; } 
         public string? Facebook { get; set; } 
-        public string? Instagram { get; set; } 
+        public string? Instagram { get; set; }
+
+        public CriancaCreateDto? Crianca { get; set; }
     }
     public class ClienteUpdateDto
     {

@@ -10,7 +10,8 @@ namespace AgendaWPF.Models
 {
     public class DiaAgendamento
     {
-        public string Nome { get; set; } // "Segunda", "Terça", ...
+        public DateTime Data { get; set; }
+        public string Nome { get; set; } = ""; // "Segunda", "Terça", ...
         public ObservableCollection<AgendamentoDto> Agendamentos { get; set; } = new();
     }
 }

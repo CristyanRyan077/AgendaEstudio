@@ -3,6 +3,7 @@ using AgendaApi.Extensions;
 using AgendaApi.Extensions.DtoMapper;
 using AgendaApi.Infra.Interfaces;
 using AgendaApi.Models;
+using AgendaApi.Extensions.MiddleWares;
 
 namespace AgendaApi.Application.Services
 {
@@ -27,6 +28,12 @@ namespace AgendaApi.Application.Services
         {
             var cri = await GetCriancaOrThrowAsync(id);
             return cri.ToDto();
+        }
+        public async Task<IEnumerable<CriancaDto?>> GetByClienteIdAsync(int id)
+        {
+            var cri = await _repository.GetByClienteIdAsync(id)
+            ?? throw new NotFoundException($"Criança do Cliente com Id {id} não encontrada.");
+            return cri.Select(c => c.ToDto());
         }
 
         public async Task<CriancaDto> CreateAsync(CriancaCreateDto dto)

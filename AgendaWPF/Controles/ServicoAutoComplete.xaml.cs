@@ -18,36 +18,34 @@ using System.Windows.Shapes;
 namespace AgendaWPF.Controles
 {
     /// <summary>
-    /// Interação lógica para ClienteAutoComplete.xam
+    /// Interação lógica para ServicoAutoComplete.xam
     /// </summary>
-    public partial class ClienteAutoComplete : UserControl
+    public partial class ServicoAutoComplete : UserControl
     {
-        
-        public ClienteAutoComplete()
+        public ServicoAutoComplete()
         {
             InitializeComponent();
             DataContextChanged += (s, e) =>
             {
                 if (DataContext is FormAgendamentoVM vm)
-                    Debug.WriteLine($"AutoComplete conectado ao VM com {vm.ListaClientes.Count} clientes");
+                    Debug.WriteLine($"AutoComplete conectado ao VM com {vm.ListaServicos.Count} servicos");
             };
         }
-     
         private void AutoCompleteBox_GotFocus(object sender, RoutedEventArgs e)
         {
             if (DataContext is FormAgendamentoVM vm)
-                vm.MostrarSugestoes = true;
+                vm.MostrarSugestoesServico = true;
         }
         private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (DataContext is FormAgendamentoVM vm)
-                vm.MostrarSugestoes = false;
+                vm.MostrarSugestoesServico = false;
         }
 
         private void AutoCompleteBox_LostFocus(object sender, RoutedEventArgs e)
         {
             if (DataContext is FormAgendamentoVM vm)
-                vm.MostrarSugestoes = false;
+                vm.MostrarSugestoesServico = false;
         }
     }
 }

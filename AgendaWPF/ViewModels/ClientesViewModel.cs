@@ -40,7 +40,7 @@ namespace AgendaWPF.ViewModels
         }
         private async Task CarregarClientesAsync()
         {
-            await Task.Delay(1500);
+            await Task.Delay(3500);
             var resultado = await _clienteService.GetClientesPaginadoAsync(PaginaAtual, PageSize, FiltroNome);
 
             Clientes = new ObservableCollection<ClienteDto>(resultado.Items);

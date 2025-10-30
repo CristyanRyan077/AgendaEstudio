@@ -1,5 +1,4 @@
 ﻿using AgendaApi.Application.Services;
-using AgendaApi.Extensions;
 using AgendaApi.Infra;
 using AgendaApi.Infra.Interfaces;
 using AgendaApi.Infra.Repositories;
@@ -10,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using Microsoft.AspNetCore.ResponseCompression;
+using AgendaApi.Extensions.MiddleWares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,12 +43,14 @@ builder.Services.AddScoped<IAgendamentoService, AgendamentoService>();
 builder.Services.AddScoped<ICriancaService, CriancaService>();
 builder.Services.AddScoped<IServicoService, ServicoService>();
 builder.Services.AddScoped<IPacoteService, PacoteService>();
+builder.Services.AddScoped<IPagamentoService, PagamentoService>();
 
 builder.Services.AddScoped<IAgendamentoRepository, AgendamentoRepository>();
 builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
 builder.Services.AddScoped<ICriancaRepository, CriancaRepository>();
 builder.Services.AddScoped<IServicoRepository, ServicoRepository>();
 builder.Services.AddScoped<IPacoteRepository, PacoteRepository>();
+builder.Services.AddScoped<IPagamentoRepository, PagamentoRepository>();
 
 builder.Services.AddDbContext<AgendaContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -75,6 +77,9 @@ builder.Services.AddCors(opt =>
 });
 
 var app = builder.Build();
+app.UseDeveloperExceptionPage();
+app.UseMiddleware<ExceptionMiddleware>();
+app.UseMiddleware<RequestTimerMiddleWare>();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AgendaContext>();
@@ -104,7 +109,7 @@ app.UseSwaggerUI(c =>
 } */
 
 app.UseHttpsRedirection();
-app.UseMiddleware<ExceptionMiddleware>();
+
 app.UseCors(CorsPolicy);
 app.UseAuthorization();
 app.MapControllers();

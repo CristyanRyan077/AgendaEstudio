@@ -20,12 +20,35 @@ namespace AgendaWPF.Views
     /// </summary>
     public partial class AgendarView : Window
     {
-        public AgendaViewModel viewmodel { get; }
-        public AgendarView(AgendaViewModel vm)
+        public FormAgendamentoVM viewmodel { get; }
+        public AgendarView(FormAgendamentoVM vm)
         {
             InitializeComponent();
             viewmodel = vm;
             DataContext = vm;
         }
+        private async void txtIdBusca_LostFocus(object sender, RoutedEventArgs e)
+        {
+            var vm = DataContext as FormAgendamentoVM;
+            if (vm == null) return;
+
+            if (int.TryParse(txtIdBusca.Text.Trim(), out int id))
+            {
+                var cliente = vm.ListaClientes.FirstOrDefault(c => c.Id == id);
+                if (cliente != null)
+                {
+                    vm.ClienteSelecionado = cliente;
+                    txtTelefone.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
+                   // txtcrianca.GetBindingExpression(ComboBox.TextProperty)?.UpdateTarget();
+                   // txtcrianca.GetBindingExpression(ComboBox.SelectedItemProperty)?.UpdateTarget();
+                }
+                else
+                {
+                    MessageBox.Show("Cliente com esse ID não encontrado.");
+                }
+            }
+        }
+
+
     }
 }

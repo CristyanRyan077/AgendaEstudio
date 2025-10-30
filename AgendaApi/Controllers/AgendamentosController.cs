@@ -34,7 +34,7 @@ namespace AgendaApi.Controllers
 
         // POST: api/v1/agendamento
         [HttpPost]
-        public async Task<ActionResult<AgendamentoDto>> Create(AgendamentoCreateDto dto)
+        public async Task<ActionResult<AgendamentoDto>> Create([FromBody] AgendamentoCreateDto dto)
         {
             var novoAgendamento = await _service.CreateAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = novoAgendamento.Id }, novoAgendamento);

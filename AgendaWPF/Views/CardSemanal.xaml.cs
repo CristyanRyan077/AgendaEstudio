@@ -1,4 +1,5 @@
-﻿using AgendaWPF.ViewModels;
+﻿using AgendaWPF.Models;
+using AgendaWPF.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -26,13 +27,15 @@ namespace AgendaWPF.Views
     {
         private AgendarView? _agendar;
         private readonly IServiceProvider _sp;
+        private readonly AgendaState _state;
         public AgendaViewModel vm { get; }
-        public CardSemanal(AgendaViewModel agendaVm, IServiceProvider sp)
+        public CardSemanal(AgendaViewModel agendaVm, IServiceProvider sp, AgendaState state)
         {
             InitializeComponent();
             vm = agendaVm;
             DataContext = vm;
             _sp = sp;
+            _state = state;
             Loaded += async (_, __) => await vm.InicializarAsync();
         }
         public AgendarView GetAgendar()
@@ -55,9 +58,16 @@ namespace AgendaWPF.Views
             FocusManager.SetFocusedElement(this, this);
             Keyboard.ClearFocus();
 
-            if (DataContext is AgendaViewModel vm)
+            if (sender is Button btn && btn.Tag is DateTime dia)
             {
-                GetAgendar();
+                // Atualiza estado compartilhado e a VM da agenda (opcional)
+                _state.SelectedDate = dia.Date;
+                if (DataContext is AgendaViewModel vm)
+                    vm.DataSelecionada = dia.Date;
+
+                var win = GetAgendar();
+                if (win.DataContext is FormAgendamentoVM formvm)
+                    formvm.DataSelecionada = dia.Date;
             }
         }
     }

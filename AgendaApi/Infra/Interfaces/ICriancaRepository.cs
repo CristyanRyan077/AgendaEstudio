@@ -6,6 +6,7 @@ namespace AgendaApi.Infra.Interfaces
     {
         Task<IEnumerable<Crianca>> GetAllAsync();
         Task<Crianca?> GetByIdAsync(int id);
+        Task<IEnumerable<Crianca?>> GetByClienteIdAsync(int id);
         Task AddAsync(Crianca crianca);
         Task UpdateAsync(Crianca crianca);
         Task DeleteAsync(int id);
