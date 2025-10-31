@@ -6,6 +6,7 @@ using AgendaWPF.Models;
 using AgendaWPF.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -22,6 +23,7 @@ namespace AgendaWPF.ViewModels
         private readonly IClienteService _clienteService;
         private readonly IServicoService _servicoService;
         private readonly IAgendamentoService _agendamentoService;
+        private readonly IMessenger _messenger;
         private readonly AgendaState _state;
 
         [ObservableProperty] private bool mostrarSugestoes = false;
@@ -71,8 +73,10 @@ namespace AgendaWPF.ViewModels
             AgendaState state,
             IClienteService clienteService,
             IServicoService servicoService,
-            IAgendamentoService agendamentoService)
+            IAgendamentoService agendamentoService,
+            IMessenger messenger)
         {
+            _messenger = messenger;
             _state = state;
             _clienteService = clienteService;
             _servicoService = servicoService;
@@ -251,6 +255,7 @@ namespace AgendaWPF.ViewModels
 
         public void PrepararCreateDto()
         {
+
             // validações de nulo/zero aqui já evitam 0 indo pro servidor
             if (ClienteSelecionado is null || ClienteSelecionado.Id <= 0)
                 throw new InvalidOperationException("Selecione um cliente válido.");
@@ -264,27 +269,27 @@ namespace AgendaWPF.ViewModels
             // Zera/normaliza antes de preencher
             CreateDto = new AgendamentoCreateDto();
 
+            var hhmm = NovoAgendamento.Horario.ToString(@"hh\:mm");
+            if (!TimeSpan.TryParse(hhmm, out var horario))
+                throw new InvalidOperationException("Selecione um horário válido.");
+
+
             CreateDto.ClienteId = ClienteSelecionado.Id;
             CreateDto.ServicoId = ServicoSelecionado.Id;
             CreateDto.PacoteId = PacoteSelecionado.Id;
 
             // Criança é opcional: só manda se tiver Id > 0
-            CreateDto.CriancaId = (CriancaSelecionada != null && CriancaSelecionada.Id > 0)
-                ? CriancaSelecionada.Id
-                : (int?)null;
-
+            if (CriancaSelecionada != null && CriancaSelecionada.Id > 0)
+            {
+                CreateDto.CriancaId = CriancaSelecionada.Id;
+                CreateDto.Mesversario = CriancaSelecionada.Idade;
+            }
             CreateDto.Data = DataSelecionada.Date;
-
-            // Garanta que você tem um TimeSpan válido vindo da UI
-            // Se você guarda o horário como string "HH:mm", parseie aqui:
-            var hhmm = NovoAgendamento.Horario.ToString(@"hh\:mm"); // ou pegue de um binding específico
-            if (!TimeSpan.TryParse(hhmm, out var horario))
-                throw new InvalidOperationException("Selecione um horário válido.");
             CreateDto.Horario = horario;
-
+            CreateDto.Valor = NovoAgendamento.Valor;
             CreateDto.Status = StatusAgendamento.Confirmado;
             CreateDto.Tema = string.IsNullOrWhiteSpace(NovoAgendamento.Tema) ? string.Empty : NovoAgendamento.Tema;
-
+            CreateDto.Tipo = TipoSelecionado;
             // Se tiver pagamento inicial
             CreateDto.PagamentoInicial = (NovoPagamento != null && NovoPagamento.Valor > 0)
                 ? new PagamentoCreateDto
@@ -310,9 +315,13 @@ namespace AgendaWPF.ViewModels
             PrepararCreateDto();
             try
             {
-                 var criado = await _agendamentoService.AgendarAsync(CreateDto);
-                 NovoAgendamento = criado;
+                var criado = await _agendamentoService.AgendarAsync(CreateDto);
+                var completo = await _agendamentoService.GetByIdAsync(criado.Id);
+                var paraEnviar = completo ?? criado;
+
+                NovoAgendamento = paraEnviar;
                 await FinalizarAgendamento();
+                _messenger.Send(new AgendamentoCriadoMessage(paraEnviar));
                 //else
                 //EditarAgendamento();
             }
@@ -360,5 +369,6 @@ namespace AgendaWPF.ViewModels
 
             return true;
         }
+        public sealed record AgendamentoCriadoMessage(AgendamentoDto Agendamento);
     }
 }

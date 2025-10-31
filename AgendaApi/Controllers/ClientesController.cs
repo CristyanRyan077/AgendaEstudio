@@ -32,6 +32,12 @@ namespace AgendaApi.Controllers
             var cliente = await _service.GetByIdAsync(id);
             return Ok(cliente); // se não existir, o middleware vai lançar NotFoundException
         }
+        [HttpGet("{id:int}/Agendamentos")]
+        public async Task<ActionResult<List<AgendamentoDto>>> GetAgendamentos(int id)
+        {
+            var agendamentos = await _service.GetAgendamentosAsync(id);
+            return Ok(agendamentos);
+        }
 
         [HttpPost]
         public async Task<ActionResult<ClienteDto>> Create(ClienteCreateDto dto)

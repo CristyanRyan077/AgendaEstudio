@@ -33,17 +33,8 @@ public partial class Agendamento
     //----------------------------------------------------//
     public StatusAgendamento Status { get; set; } = StatusAgendamento.Pendente;
     public TipoEntrega Entrega { get; set; } = TipoEntrega.Foto;
-    //----------------------------------------------------//
-    //           NotMapped
-    //----------------------------------------------------//
-    [NotMapped] public decimal ValorPago => Pagamentos?.Sum(p => p.Valor) ?? 0m;
-    [NotMapped] public int? NumeroMes { get; set; }
-    [MaxLength(50)] public string? MesversarioFormatado => $"Mês {Mesversario}";
-    public bool EstaPago => Math.Round(Valor, 2) <= Math.Round(ValorPago, 2);
-    [NotMapped] public bool TemReserva => Pagamentos?.Any(p => p.Tipo == TipoLancamento.Reserva) == true;
-    [NotMapped] public string? MesReserva => Pagamentos?.FirstOrDefault(p => p.Tipo == TipoLancamento.Reserva)?.Observacao;
-    [NotMapped] public decimal? ValorReserva => Pagamentos.FirstOrDefault(p => p.Tipo == TipoLancamento.Reserva)?.Valor;
-    //----------------------------------------------------//
+
+
     //          Collections
     //----------------------------------------------------//
     public ICollection<AgendamentoProduto> AgendamentoProdutos { get; set; } = new List<AgendamentoProduto>();

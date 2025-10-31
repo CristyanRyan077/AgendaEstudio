@@ -17,6 +17,7 @@ namespace AgendaWPF.Services
         Task<List<AgendamentoDto>> ObterAgendamentosPorPeriodo(DateTime inicio, DateTime fim);
         Task<PagamentoDto> AddPagamentoAsync(int agendamentoId, PagamentoCreateDto dto, CancellationToken ct = default);
         Task<AgendamentoDto> AgendarAsync(AgendamentoCreateDto dto, CancellationToken ct = default);
+        Task<AgendamentoDto> GetByIdAsync(int id);
     }
 
     public class AgendamentoService : IAgendamentoService
@@ -37,6 +38,11 @@ namespace AgendaWPF.Services
                 Debug.WriteLine(ex.ToString());
                 return new List<AgendamentoDto>();
             }
+        }
+        public async Task<AgendamentoDto> GetByIdAsync(int id)
+        {
+            var agendamento = await _http.GetFromJsonAsync<AgendamentoDto>($"api/agendamentos/{id}");
+            return agendamento ?? new AgendamentoDto();
         }
 
         public async Task<List<AgendamentoDto>> ObterAgendamentosPorPeriodo(DateTime inicio, DateTime fim)

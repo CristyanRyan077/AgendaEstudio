@@ -14,9 +14,11 @@ namespace AgendaApi.Extensions.DtoMapper
              PacoteId = dto.PacoteId,
              Valor = dto.Valor,
              Data = dto.Data,
+             Mesversario = dto.Mesversario,
              Horario = dto.Horario,
              Tema = dto.Tema,
-             Status = dto.Status
+             Status = dto.Status,
+             Entrega = dto.Tipo
          };
 
         public static AgendamentoDto ToDto(this Agendamento entity) =>
@@ -30,9 +32,10 @@ namespace AgendaApi.Extensions.DtoMapper
             Valor = entity.Valor,
             Data = entity.Data,
             Horario = entity.Horario,
+            Mesversario = entity.Mesversario,
             Tema = entity.Tema,
+            Tipo = entity.Entrega,
             Status = entity.Status,
-            ValorPago = entity.ValorPago,
             Pagamentos = entity.Pagamentos?.Select(p => p.ToDto()).ToList(),
 
             Cliente = entity.Cliente == null ? null : new ClienteResumoDto

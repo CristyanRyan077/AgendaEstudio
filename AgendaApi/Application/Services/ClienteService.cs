@@ -12,7 +12,12 @@ namespace AgendaApi.Application.Services
     public class ClienteService : IClienteService
     {
         private readonly IClienteRepository _repository;
-        public ClienteService(IClienteRepository repository) => _repository = repository;
+        private readonly ICriancaRepository _criancaRepo;
+        public ClienteService(IClienteRepository repository, ICriancaRepository criancaRepo)
+        {
+            _repository = repository;
+            _criancaRepo = criancaRepo;
+        }
 
         public async Task<Cliente> GetClienteOrThrowAsync(int id)
         {
@@ -35,7 +40,19 @@ namespace AgendaApi.Application.Services
         {
             var cliente = dto.ToEntity();
             await _repository.AddAsync(cliente);
+
+            if(dto.Crianca is not null)
+            {
+                var criancaNova = dto.Crianca.ToEntity();
+                criancaNova.ClienteId = cliente.Id; // define FK
+                await _criancaRepo.AddAsync(criancaNova);
+            }
             return cliente.ToDto();
+        }
+        public async Task<List<AgendamentoDto>> GetAgendamentosAsync(int clienteId)
+        {
+            var agendamentos = await _repository.GetAgendamentos(clienteId);
+            return agendamentos.Select(a => a.ToDto()).ToList();
         }
 
         public async Task<ClienteDto?> UpdateAsync(int id, ClienteUpdateDto dto)

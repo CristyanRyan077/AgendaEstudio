@@ -1,5 +1,7 @@
 ﻿
 using AgendaShared;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AgendaShared.DTOs
 {
@@ -14,14 +16,40 @@ namespace AgendaShared.DTOs
         public TimeSpan Horario { get; set; }
         public string? Tema { get; set; }
         public decimal Valor { get; set; }
+        public int? Mesversario { get; set; }
         public StatusAgendamento Status { get; set; }
-        public decimal ValorPago { get; set; }
-        public bool EstaPago { get; set; }
+        public TipoEntrega Tipo { get; set; }
         public List<PagamentoDto>? Pagamentos { get; set; }
         public ClienteResumoDto? Cliente { get; set; }
         public ServicoResumoDto? Servico { get; set; }
         public PacoteResumoDto? Pacote { get; set; }
         public CriancaResumoDto? Crianca { get; set; }
+        //----------------------------------------------------//
+        //           NotMapped
+        //----------------------------------------------------//
+        [NotMapped] public decimal ValorPago => Pagamentos?.Sum(p => p.Valor) ?? 0m;
+        [NotMapped] public int? NumeroMes { get; set; }
+        [NotMapped]
+        public string? MesversarioFormatado
+        {
+            get
+            {
+                if (Crianca == null)
+                    return "";
+
+                return Crianca.IdadeUnidade switch
+                {
+                    IdadeUnidade.Ano or IdadeUnidade.Anos => $"{Crianca.Idade} anos",
+                    IdadeUnidade.Mês or IdadeUnidade.Meses => $"{Crianca.Idade} meses",
+                    _ => $"Mês {Mesversario}"
+                };
+            }
+        }
+        public bool EstaPago => Math.Round(Valor, 2) <= Math.Round(ValorPago, 2);
+        [NotMapped] public bool TemReserva => Pagamentos?.Any(p => p.Tipo == TipoLancamento.Reserva) == true;
+        [NotMapped] public string? MesReserva => Pagamentos?.FirstOrDefault(p => p.Tipo == TipoLancamento.Reserva)?.Observacao;
+        [NotMapped] public decimal? ValorReserva => Pagamentos.FirstOrDefault(p => p.Tipo == TipoLancamento.Reserva)?.Valor;
+        //----------------------------------------------------//
     }
 
     public class AgendamentoCreateDto
@@ -30,9 +58,11 @@ namespace AgendaShared.DTOs
         public int? CriancaId { get; set; }
         public int ServicoId { get; set; }
         public int PacoteId { get; set; }
+        public int? Mesversario { get; set; }
         public DateTime Data { get; set; }
         public TimeSpan Horario { get; set; }
         public StatusAgendamento Status { get; set; }
+        public TipoEntrega Tipo { get; set; }
         public string? Tema { get; set; }
         public decimal Valor { get; set; }
 
@@ -55,7 +85,7 @@ namespace AgendaShared.DTOs
     {
         public int Id { get; set; }
         public string Nome { get; set; } = string.Empty;
-        public string Telefone { get; set; } = string.Empty;    
+        public string Telefone { get; set; } = string.Empty;
     }
     public class ServicoResumoDto
     {

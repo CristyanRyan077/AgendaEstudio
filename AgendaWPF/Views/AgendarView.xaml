@@ -66,7 +66,7 @@
 
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="350" />
                         <ColumnDefinition Width="100" />
                     </Grid.ColumnDefinitions>
                     <controles:ClienteAutoComplete/>
@@ -78,7 +78,7 @@
                 <Grid Margin="0,0,0,10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="200" />
-                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="250" />
                     </Grid.ColumnDefinitions>
                     <hc:TextBox Grid.Column="0" Name="txtTelefone"
                                 Text="{Binding NovoCliente.Telefone,
@@ -107,7 +107,7 @@
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="{Binding Nome}" Margin="0,0,5,0" FontWeight="SemiBold"/>
-                                    <TextBlock Text="{Binding Valor, StringFormat={}{0:C}}" Foreground="Green"/>
+                                    <TextBlock Text="{Binding Valor, StringFormat={}{0:C0}}" Foreground="Green"/>
                                 </StackPanel>
                             </DataTemplate>
                         </hc:ComboBox.ItemTemplate>
@@ -118,17 +118,19 @@
 
                 <Grid Margin="0,0,0,0">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="150" />
-                        <ColumnDefinition Width="155" />
-                        <ColumnDefinition Width="170" />
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="55" />
+                        <ColumnDefinition Width="80"/>
+                        <ColumnDefinition Width="130" />
                     </Grid.ColumnDefinitions>
-                    
+
+
                     <hc:ComboBox Grid.Column="0" ItemsSource="{Binding HorariosDisponiveis}"
-                                 SelectedItem="{Binding HorarioTexto,Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 SelectedItem="{Binding NovoAgendamento.Horario, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                  hc:InfoElement.Placeholder="Horário"/>
-                    
-                    <hc:TextBox Grid.Column="1" Text="{Binding NovoPagamento.Valor}" hc:InfoElement.Placeholder="Pago"/>
-                    <hc:ComboBox Grid.Column="2"
+                    <hc:TextBox IsReadOnly="True" Margin="10,0,0,0" Background="Transparent" Grid.Column="1" Text="R$" Foreground="Green" FontSize="24"/>
+                    <hc:TextBox Grid.Column="2" Text="{Binding NovoPagamento.Valor}" hc:InfoElement.Placeholder="Pago"/>
+                    <hc:ComboBox Grid.Column="3"
                                  ItemsSource="{Binding TiposEntrega}"
                                  SelectedItem="{Binding TipoSelecionado, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                  hc:InfoElement.Placeholder="Album/Painel/Fotos"/>
@@ -145,32 +147,33 @@
 
                     <Grid Margin="0,0,0,0">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="120" />
+                            <ColumnDefinition Width="450" />
                         </Grid.ColumnDefinitions>
-                        <hc:ComboBox Grid.Column="0"                IsEditable="False"
+                        <hc:ComboBox Grid.Column="0" IsEditable="False"
                                      DisplayMemberPath="Nome"
                                      ItemsSource="{Binding ListaCriancas}"     
                                      SelectedItem="{Binding CriancaSelecionada, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      hc:InfoElement.Placeholder="Criança"/>
 
-                        <hc:ComboBox Grid.Column="1" ItemsSource="{Binding GenerosLista}"
-                                     SelectedItem="{Binding CriancaSelecionada.Genero,
-                                     Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                     hc:InfoElement.Placeholder="Gênero"/>
+                        
                     </Grid>
 
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="100" />
                             <ColumnDefinition Width="170" />
-                            <ColumnDefinition Width="180" />
+                            <ColumnDefinition Width="140" />
                         </Grid.ColumnDefinitions>
                         <hc:TextBox Grid.Column="0" Text="{Binding CriancaSelecionada.Idade}" hc:InfoElement.Placeholder="Idade"/>
                         <hc:ComboBox Grid.Column="1"
                                      ItemsSource="{Binding IdadesUnidadeDisponiveis}"
                                      SelectedItem="{Binding CriancaSelecionada.IdadeUnidade, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      hc:InfoElement.Placeholder="Anos/Meses"/>
+                        
+                        <hc:ComboBox Grid.Column="2" ItemsSource="{Binding GenerosLista}"
+                                     SelectedItem="{Binding CriancaSelecionada.Genero,
+                                     Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     hc:InfoElement.Placeholder="Gênero"/>
                     </Grid>
                 </StackPanel>
 

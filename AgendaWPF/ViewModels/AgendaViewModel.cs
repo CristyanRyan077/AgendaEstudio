@@ -1,10 +1,12 @@
 ﻿
+using AgendaShared;
 using AgendaShared.DTOs;
 using AgendaWPF.Controles;
 using AgendaWPF.Models;
 using AgendaWPF.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -13,6 +15,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static AgendaWPF.ViewModels.FormAgendamentoVM;
 
 namespace AgendaWPF.ViewModels
 {
@@ -21,14 +24,27 @@ namespace AgendaWPF.ViewModels
         public ObservableCollection<DiaAgendamento> DiasSemana { get; set; } = new();
         private readonly IAgendamentoService _agendamentoService;
         private readonly IClienteService _clienteService;
+        private readonly IMessenger _messenger;
+        private readonly ISemanaService _semanaService;
         [ObservableProperty] private DateTime dataSelecionada = DateTime.Today;
+        public IEnumerable<IdadeUnidade> IdadesUnidadeDisponiveis => Enum.GetValues(typeof(IdadeUnidade)).Cast<IdadeUnidade>();
+        public IEnumerable<Genero> GenerosLista => Enum.GetValues(typeof(Genero)).Cast<Genero>();
+        public IEnumerable<TipoEntrega> TiposEntrega => Enum.GetValues(typeof(TipoEntrega)).Cast<TipoEntrega>();
+        [ObservableProperty] private TipoEntrega tipoSelecionado = TipoEntrega.Foto;
 
         [ObservableProperty] private ObservableCollection<ClienteDto> listaClientes = new();
-        public AgendaViewModel(IAgendamentoService agendamentoService, IClienteService clienteService)
+        public AgendaViewModel( IMessenger messenger, IAgendamentoService agendamentoService, IClienteService clienteService, ISemanaService semanaService)
         {
             _agendamentoService = agendamentoService;
             _clienteService = clienteService;
-            
+            _messenger = messenger;
+            _semanaService = semanaService;
+
+            messenger.Register<AgendamentoCriadoMessage>(this, (_, msg) =>
+            {
+                AdicionarAgendamentoNaSemana(msg.Agendamento);
+            });
+
         }
         public async Task InicializarAsync()
         {
@@ -38,42 +54,37 @@ namespace AgendaWPF.ViewModels
 
         public async Task CarregarSemanaAtualAsync()
         {
-            var inicio = ObterSegundaDaSemana(DateTime.Today);
+            var inicio = _semanaService.ObterSegunda(DataSelecionada);
             var fim = inicio.AddDays(6);
 
             var agendamentos = await _agendamentoService.ObterAgendamentosPorPeriodo(inicio, fim);
 
             // Monta lista agrupada por dia:
             DiasSemana.Clear();
+            foreach (var dia in await _semanaService.CarregarSemanaAsync(DataSelecionada))
+                DiasSemana.Add(dia);
 
-            for (int i = 0; i < 7; i++)
-            {
-                var dia = inicio.AddDays(i);
-                var listaDia = agendamentos
-                    .Where(a => a.Data.Date == dia.Date)
-                    .OrderBy(a => a.Horario)
-                    .ToList();
 
-                DiasSemana.Add(new DiaAgendamento
-                {
-                    Data = dia,
-                    Nome = CultureInfo.GetCultureInfo("pt-BR")
-                    .TextInfo
-                    .ToTitleCase(
-                        dia.ToString("dddd", new CultureInfo("pt-BR"))
-                           .Replace("-feira", "")
-                           .Trim()
-                    ),
-                    Agendamentos = new ObservableCollection<AgendamentoDto>(listaDia)
-                });
-            }
+
         }
-        private static DateTime ObterSegundaDaSemana(DateTime data)
+        private void AdicionarAgendamentoNaSemana(AgendamentoDto criado)
         {
-            int diff = (7 + (data.DayOfWeek - DayOfWeek.Monday)) % 7;
-            return data.AddDays(-1 * diff).Date;
-        }
+            var inicio = _semanaService.ObterSegunda(DataSelecionada);
+            var fim = inicio.AddDays(6);
+            if (criado.Data.Date < inicio || criado.Data.Date > fim) return;
 
-       
+            var dia = DiasSemana.FirstOrDefault(d => d.Data.Date == criado.Data.Date);
+            if (dia is null)
+            {
+                dia = _semanaService.CriarDia(criado.Data);
+                DiasSemana.Add(dia);
+            }
+
+            // Inserção ordenada por horário
+            var i = 0;
+            while (i < dia.Agendamentos.Count && dia.Agendamentos[i].Horario <= criado.Horario) i++;
+            dia.Agendamentos.Insert(i, criado);
+        }
     }
+
 }

@@ -10,6 +10,7 @@ namespace AgendaApi.Infra.Interfaces
         Task AddAsync(Cliente cliente);
         Task UpdateAsync(Cliente cliente);
         Task DeleteAsync(int id);
+        Task<List<Agendamento>> GetAgendamentos(int clienteId);
         Task<PagedResult<Cliente>> GetPaginadoAsync(int page, int pageSize, string? nome);
     }
 }

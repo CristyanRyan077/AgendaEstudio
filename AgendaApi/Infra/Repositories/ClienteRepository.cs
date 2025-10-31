@@ -26,6 +26,17 @@ namespace AgendaApi.Infra.Repositories
                 await _context.SaveChangesAsync();
             }
         }
+        public async Task<List<Agendamento>> GetAgendamentos(int clienteId)
+        {
+            return await _context.Agendamentos
+                .Where(a => a.ClienteId == clienteId)
+                .Include(a => a.Pagamentos)
+                .Include(a => a.Cliente)
+                .Include(a => a.Servico)
+                .Include(a => a.Crianca)
+                .Include(a => a.Pacote)
+                .ToListAsync();
+        }
 
         public async Task<IEnumerable<Cliente>> GetAllAsync()
         {

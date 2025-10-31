@@ -17,6 +17,10 @@ namespace AgendaWPF.Services
         Task<List<ClienteDto>> ObterClientesAsync();
         Task<PagedResult<ClienteDto>> GetClientesPaginadoAsync(int page, int pagesize, string? nome);
         Task<List<CriancaDto>> GetByClienteIdAsync(int id);
+        Task<List<AgendamentoDto>> GetHistoricoAsync(int id);
+        Task<ClienteDto> GetByIdAsync(int id);
+        Task<ClienteDto> CreateClienteAsync(ClienteCreateDto clienteCreateDto);
+        Task<CriancaDto> CreateCriancaAsync(CriancaCreateDto criancaCreateDto);
     }
     public class ClienteService : IClienteService
     {
@@ -38,6 +42,65 @@ namespace AgendaWPF.Services
                 return new List<ClienteDto>();
             }
         }
+        public async Task<ClienteDto> GetByIdAsync(int id)
+        {
+            try
+            {
+                var cliente = await _http.GetFromJsonAsync<ClienteDto>($"api/clientes/{id}");
+                return cliente ?? new ClienteDto();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.ToString());
+                return new ClienteDto();
+            }
+
+        }
+        public async Task<List<AgendamentoDto>> GetHistoricoAsync(int id)
+        {
+            try
+            {
+                var agendamentos = await _http.GetFromJsonAsync<List<AgendamentoDto>>($"api/clientes/{id}/agendamentos");
+                return agendamentos ?? new List<AgendamentoDto>();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.ToString());
+                return new List<AgendamentoDto>();
+            }
+        }
+
+        public async Task<ClienteDto> CreateClienteAsync(ClienteCreateDto clienteCreateDto)
+        {
+            try
+            {
+                var response = await _http.PostAsJsonAsync("api/clientes", clienteCreateDto);
+                response.EnsureSuccessStatusCode();
+                var createdCliente = await response.Content.ReadFromJsonAsync<ClienteDto>();
+                return createdCliente ?? new ClienteDto();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.ToString());
+                return new ClienteDto();
+            }
+        }
+        public async Task<CriancaDto> CreateCriancaAsync(CriancaCreateDto criancaCreateDto)
+        {
+            try
+            {
+                var response = await _http.PostAsJsonAsync("api/criancas", criancaCreateDto);
+                response.EnsureSuccessStatusCode();
+                var createdCrianca = await response.Content.ReadFromJsonAsync<CriancaDto>();
+                return createdCrianca ?? new CriancaDto();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.ToString());
+                return new CriancaDto();
+            }
+        }
+
         public async Task<List<CriancaDto>> GetByClienteIdAsync(int id)
         {
             try

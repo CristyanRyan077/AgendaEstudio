@@ -3,6 +3,7 @@ using AgendaWPF.Models;
 using AgendaWPF.Services;
 using AgendaWPF.ViewModels;
 using AgendaWPF.Views;
+using CommunityToolkit.Mvvm.Messaging;
 using HandyControl.Tools;
 using Microsoft.Extensions.DependencyInjection;
 using System.Configuration;
@@ -30,6 +31,8 @@ namespace AgendaWPF
             services.AddTransient<IAgendamentoService, AgendamentoService>();
             services.AddTransient<IClienteService, ClienteService>();
             services.AddTransient<IServicoService, ServicoService>();
+            services.AddTransient<ISemanaService, SemanaService>();
+            services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
 
             services.AddSingleton<AgendaViewModel>();
             services.AddSingleton<MainViewModel>();
