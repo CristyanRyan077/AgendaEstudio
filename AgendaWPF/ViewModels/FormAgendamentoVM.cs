@@ -11,8 +11,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -83,7 +85,10 @@ namespace AgendaWPF.ViewModels
             _agendamentoService = agendamentoService;
             DataSelecionada = _state.SelectedDate;
             CreateDto.Data = _state.SelectedDate;
-            _ = CarregarDadosDoBancoAsync();
+        }
+        public async Task InitAsync()
+        {
+            await CarregarDadosDoBancoAsync();
             AtualizarHorariosDisponiveis();
         }
         public async Task CarregarDadosDoBancoAsync()
@@ -124,9 +129,13 @@ namespace AgendaWPF.ViewModels
             var termo = value?.ToLower() ?? "";
 
             ClientesFiltrados.Clear();
-
+            if (string.IsNullOrEmpty(termo))
+            {
+                MostrarSugestoes = false;
+                return;
+            }
             foreach (var c in ListaClientes.Where(c =>
-             (!string.IsNullOrEmpty(c.Nome) && c.Nome.Contains(termo)) ||
+             (!string.IsNullOrEmpty(c.Nome) && c.Nome.IndexOf(termo, StringComparison.OrdinalIgnoreCase) >= 0) ||
              (!string.IsNullOrEmpty(c.Telefone) && c.Telefone.Contains(termo))))
                 ClientesFiltrados.Add(c);
 
@@ -145,11 +154,12 @@ namespace AgendaWPF.ViewModels
             NovoCliente.Observacao = cliente.Observacao;
 
             ListaCriancas.Clear();
-            foreach (var cr in cliente.Criancas)
+            foreach (var cr in (cliente.Criancas ?? Enumerable.Empty<CriancaDto>()))
                 ListaCriancas.Add(cr);
 
-            if (cliente.Criancas?.Count > 0)
-                CriancaSelecionada = cliente.Criancas[0];
+            CriancaSelecionada = (cliente.Criancas != null && cliente.Criancas.Count > 0)
+            ? cliente.Criancas[0]
+            : null;
 
             OnPropertyChanged(nameof(NovoCliente));
         }
@@ -301,7 +311,7 @@ namespace AgendaWPF.ViewModels
                 }
                 : null;
         }
-
+        public event EventHandler? RequestClose;
         [RelayCommand]
         public async Task AgendarAsync()
         {
@@ -318,9 +328,9 @@ namespace AgendaWPF.ViewModels
                 var criado = await _agendamentoService.AgendarAsync(CreateDto);
                 var completo = await _agendamentoService.GetByIdAsync(criado.Id);
                 var paraEnviar = completo ?? criado;
-
                 NovoAgendamento = paraEnviar;
                 await FinalizarAgendamento();
+                RequestClose?.Invoke(this, EventArgs.Empty);
                 _messenger.Send(new AgendamentoCriadoMessage(paraEnviar));
                 //else
                 //EditarAgendamento();
@@ -334,9 +344,48 @@ namespace AgendaWPF.ViewModels
         private Guid agendamentoIdAtual;
         private async Task FinalizarAgendamento()
         {
+            EnviarMensagemWhatsapp(ClienteSelecionado, CriancaSelecionada);
             await CarregarDadosDoBancoAsync();
             AtualizarHorariosDisponiveis();
-            NovoAgendamento = new AgendamentoDto { Data = DataSelecionada };
+
+            LimparCampos();
+        }
+        public void EnviarMensagemWhatsapp(ClienteDto cliente, CriancaDto crianca)
+        {
+            if (MessageBox.Show("Deseja enviar o agendamento via WhatsApp?", "Confirmar envio",
+                MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+
+            var textoCrianca = crianca != null
+                ? $" {crianca.Nome} ({crianca.Idade} {crianca.IdadeUnidade})\n"
+                : "";
+
+            var servicoNome = NovoAgendamento.Servico.Nome ?? "Não informado";
+            var cultura = new CultureInfo("pt-BR");
+            var diaSemana = cultura.TextInfo.ToTitleCase(NovoAgendamento.Data.ToString("dddd", cultura));
+            var texto = Uri.EscapeDataString($"✅ Agendado: {NovoAgendamento.Data:dd/MM/yyyy} às {NovoAgendamento.Horario:hh\\:mm} ({diaSemana}) (Id: {cliente.Id}) \n\n" +
+                            $"Cliente: {cliente.Nome} - {textoCrianca}" +
+                            $"Telefone: {cliente.Telefone}\n" +
+                            $"Tema: {NovoAgendamento.Tema}\n" +
+                            $"Serviço: {servicoNome}\n" +
+                            $"Valor: R$ {NovoAgendamento.Valor:N2} | Pago: R$ {NovoAgendamento.ValorPago:N2}\n" +
+                            $"📍 *AVISOS*:\r\n- A criança tem direito a *dois* acompanhantes 👶👩🏻‍\U0001f9b0👨🏻‍\U0001f9b0" +
+                            $" o terceiro acompanhante paga R$ 20,00\r\n- A sessão fotográfica tem duração de até 1 hora." +
+                            $"\r\n- *Tolerância máxima de atraso: 30 minutos*🚨" +
+                            $"(A partir de 30 minutos de atraso não atendemos mais, será necessário agendar outra data)." +
+                            $" *PRAZO DE ENVIAR FOTOS TRATADAS DE 48HS DIAS ÚTEIS; APÓS O CLIENTE ESCOLHER NO APLICATIVO ALBOOM*");
+
+            Clipboard.SetText(texto);
+
+            string telefoneFormatado = $"55859{Regex.Replace(cliente.Telefone, @"\D", "")}";
+            string url = $"https://web.whatsapp.com/send?phone={telefoneFormatado}&text={texto}";
+
+            Thread.Sleep(100);
+
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = url,
+                UseShellExecute = true
+            });
         }
         private bool ValidarDadosBasicos()
         {
@@ -368,6 +417,30 @@ namespace AgendaWPF.ViewModels
             }
 
             return true;
+        }
+        public async Task LimparCampos()
+        {
+            NovoAgendamento = new AgendamentoDto { Data = DataSelecionada };
+            NovoCliente = new ClienteDto();
+            NovoServico = new ServicoDto();
+            NovoPagamento = new PagamentoCreateDto();
+            NovoAgendamento.ServicoId = 0;
+            NovoAgendamento.PacoteId = 0;
+            NovoAgendamento.Valor = 0;
+            NovoPagamento.Valor = 0;
+            ClienteSelecionado = null;
+            ServicoSelecionado = null;
+            NomeDigitado = string.Empty;
+            ServicoDigitado = string.Empty;
+            NovoAgendamento.CriancaId = null;
+            TipoSelecionado = TipoEntrega.Foto;
+            MostrarSugestoesServico = false;
+            MostrarSugestoes = false;
+            ServicoDigitado = string.Empty;
+            NomeDigitado = string.Empty;
+            ListaCriancas.Clear();
+            ListaPacotesFiltrada.Clear();
+            await CarregarDadosDoBancoAsync();
         }
         public sealed record AgendamentoCriadoMessage(AgendamentoDto Agendamento);
     }

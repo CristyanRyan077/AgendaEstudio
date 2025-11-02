@@ -1,5 +1,6 @@
 ﻿using AgendaShared.DTOs;
 using AgendaApi.Models;
+using AgendaShared.Models;
 
 namespace AgendaApi.Extensions.DtoMapper
 {
@@ -32,6 +33,16 @@ namespace AgendaApi.Extensions.DtoMapper
             Criancas = entity.Criancas?.Select(x => x.ToDto()).ToList(),
             Agendamentos = entity.Agendamentos?.Select(x => x.ToDto()).ToList()
         };
+        public static ClienteResumoDto ToResumoDto(this Cliente f)
+         => new ClienteResumoDto
+         {
+             Id = f.Id,
+             Nome = f.Nome,
+             Telefone = f.Telefone,
+             Email = f.Email,
+             Observacao = f.Observacao
+         };
+
         public static void UpdateEntity(this Cliente cliente, ClienteUpdateDto dto)
         {
             if (!string.IsNullOrEmpty(dto.Telefone)) cliente.Telefone = dto.Telefone;

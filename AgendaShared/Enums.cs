@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace AgendaShared
 {
+    public enum FormMode { Create = 0, Edit = 1 }
     public enum IdadeUnidade
     {
         Ano = 0,

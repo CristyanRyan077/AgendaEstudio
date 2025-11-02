@@ -6,6 +6,7 @@ using AgendaApi.Infra.Interfaces;
 using AgendaApi.Infra.Repositories;
 using AgendaApi.Models;
 using AgendaShared.DTOs;
+using Microsoft.EntityFrameworkCore;
 
 namespace AgendaApi.Application.Services
 {
@@ -19,6 +20,7 @@ namespace AgendaApi.Application.Services
             _criancaRepo = criancaRepo;
         }
 
+
         public async Task<Cliente> GetClienteOrThrowAsync(int id)
         {
             return await _repository.GetByIdAsync(id)
@@ -28,6 +30,11 @@ namespace AgendaApi.Application.Services
         {
             var clientes = await _repository.GetAllAsync();
             return clientes.Select(a => a.ToDto());
+        }
+        public async Task<List<ClienteResumoDto>> GetAllResumoAsync()
+        {
+            var clientes = await _repository.GetAllAsync();
+            return clientes.Select(a => a.ToResumoDto()).ToList();
         }
 
         public async Task<ClienteDto?> GetByIdAsync(int id)

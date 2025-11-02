@@ -1,4 +1,5 @@
-﻿using AgendaApi.Models;
+﻿
+using AgendaShared.DTOs;
 using AgendaWPF.Models;
 using AgendaWPF.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,13 +32,16 @@ namespace AgendaWPF.Views
         private bool _mouseDown;
         private AgendarView? _agendar;
         private readonly IServiceProvider _sp;
+        private AgendaState _agendaState;
         public CalendarioViewModel viewmodel { get; }
-        public CalendarioView(CalendarioViewModel vm, IServiceProvider sp)
+        public CalendarioView(CalendarioViewModel vm, IServiceProvider sp, AgendaState state)
         {
             InitializeComponent();
             viewmodel = vm;
             DataContext = vm;
             _sp = sp;
+            _agendaState = state;
+            Loaded += async (_, __) => await viewmodel.InicializarAsync();
         }
         public AgendarView GetAgendar()
         {
@@ -59,9 +63,16 @@ namespace AgendaWPF.Views
             FocusManager.SetFocusedElement(this, this);
             Keyboard.ClearFocus();
 
-            if (DataContext is CalendarioViewModel vm)
+            if (sender is Button btn && btn.Tag is DateTime dia)
             {
-                GetAgendar();
+                // Atualiza estado compartilhado e a VM da agenda (opcional)
+                _agendaState.SelectedDate = dia.Date;
+                if (DataContext is CalendarioViewModel vm)
+                    vm.DataSelecionada = dia.Date;
+
+                var win = GetAgendar();
+                if (win.DataContext is FormAgendamentoVM formvm)
+                    formvm.DataSelecionada = dia.Date;
             }
         }
         private static T FindAncestorByName<T>(DependencyObject current, string name) where T : FrameworkElement
@@ -75,7 +86,7 @@ namespace AgendaWPF.Views
         }
         private void ItemBorder_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (sender is FrameworkElement fe && fe.DataContext is Agendamento ag
+            if (sender is FrameworkElement fe && fe.DataContext is AgendamentoDto ag
                 && DataContext is CalendarioViewModel vm);
                 //vm.SelecionarAgendamento(ag);
         }
@@ -108,10 +119,10 @@ namespace AgendaWPF.Views
 
             // Só aqui inicia o drag
             var fe = (FrameworkElement)sender;
-            if (fe.DataContext is not Agendamento ag)
+            if (fe.DataContext is not AgendamentoDto ag)
                 return;
 
-            var data = new DataObject(typeof(Agendamento), ag);
+            var data = new DataObject(typeof(AgendamentoDto), ag);
             DragDrop.DoDragDrop(fe, data, DragDropEffects.Move);
 
             _mouseDown = false;
@@ -120,7 +131,7 @@ namespace AgendaWPF.Views
         private void Agendamento_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (sender is not FrameworkElement fe) return;
-            if (fe.DataContext is not Agendamento ag) return;
+            if (fe.DataContext is not AgendamentoDto ag) return;
             if (DataContext is CalendarioViewModel vm)
               //  vm.SelecionarAgendamento(ag);
             e.Handled = true;
@@ -132,7 +143,7 @@ namespace AgendaWPF.Views
         }
         private void Dia_PreviewDragOver(object sender, DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(typeof(Agendamento)))
+            if (e.Data.GetDataPresent(typeof(AgendamentoDto)))
             {
                 e.Effects = DragDropEffects.Move;
                 ((Border)sender).Background = Brushes.LightBlue;
@@ -152,23 +163,23 @@ namespace AgendaWPF.Views
         {
             try
             {
-                if (!e.Data.GetDataPresent(typeof(Agendamento))) return;
+                if (!e.Data.GetDataPresent(typeof(AgendamentoDto))) return;
 
-                var ag = (Agendamento)e.Data.GetData(typeof(Agendamento));
+                var ag = (AgendamentoDto)e.Data.GetData(typeof(AgendamentoDto));
                 var cellVm = (DiaCalendario)((FrameworkElement)sender).DataContext;
                 var novaData = cellVm.Data;
 
                 var vm = (CalendarioViewModel)DataContext;
 
-                // se quiser, guarde a data antiga pra rollback caso falhe
+
                 var oldDate = ag.Data;
 
-               // await vm.MoverAgendamentoAsyncCommand.ExecuteAsync((ag, novaData));
+                await vm.MoverAgendamentoAsyncCommand.ExecuteAsync((ag, novaData));
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine("Erro no Drop de reagendamento: " + ex);
-                // TODO: opcional -> toast/MessageBox amigável
+                
             }
             finally
             {

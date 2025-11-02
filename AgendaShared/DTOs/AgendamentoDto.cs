@@ -69,6 +69,14 @@ namespace AgendaShared.DTOs
         public PagamentoCreateDto? PagamentoInicial { get; set; }
     }
 
+    public class ReagendarDto
+    {
+        [Required]
+        public DateTime NovaData { get; set; }
+
+        [Required]
+        public TimeSpan NovoHorario { get; set; }
+    }
     public class AgendamentoUpdateDto
     {
         public int ClienteId { get; set; }
@@ -86,6 +94,8 @@ namespace AgendaShared.DTOs
         public int Id { get; set; }
         public string Nome { get; set; } = string.Empty;
         public string Telefone { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Observacao { get; set; } = string.Empty;
     }
     public class ServicoResumoDto
     {

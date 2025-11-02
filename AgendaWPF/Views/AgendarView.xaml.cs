@@ -26,6 +26,9 @@ namespace AgendaWPF.Views
             InitializeComponent();
             viewmodel = vm;
             DataContext = vm;
+            Loaded += async (_, __) => await viewmodel.InitAsync();
+            if (DataContext is FormAgendamentoVM form)
+                form.RequestClose += (_, __) => Close();
         }
         private async void txtIdBusca_LostFocus(object sender, RoutedEventArgs e)
         {

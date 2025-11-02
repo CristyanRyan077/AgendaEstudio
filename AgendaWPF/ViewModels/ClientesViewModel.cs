@@ -1,16 +1,19 @@
 ﻿using AgendaApi.Models;
 using AgendaShared;
 using AgendaShared.DTOs;
+using AgendaShared.Models;
 using AgendaWPF.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace AgendaWPF.ViewModels
 {
@@ -21,9 +24,14 @@ namespace AgendaWPF.ViewModels
         private ObservableCollection<ClienteDto> clientes = new();
         [ObservableProperty] private CriancaDto? criancaSelecionada;
         [ObservableProperty] private ClienteDto? clienteSelecionado;
-        [ObservableProperty] private ClienteCreateDto novoCliente = new();
-        [ObservableProperty] private CriancaCreateDto novaCrianca = new();
         [ObservableProperty] private ObservableCollection<AgendamentoDto> historico = new();
+        [ObservableProperty] private FormMode mode = FormMode.Create;
+        [ObservableProperty] private ClienteFormModel cliente = new();
+        [ObservableProperty] private int? clienteId;
+        [ObservableProperty] private int? criancaId;
+        [ObservableProperty] private ObservableCollection<CriancaDto> listaCriancas = new();
+        [ObservableProperty] private bool clienteExistenteDetectado;
+        public bool IsEdit => Mode == FormMode.Edit;
         public bool TemHistorico => Historico?.Any() == true;
 
         [ObservableProperty] private int paginaAtual = 1;
@@ -31,12 +39,14 @@ namespace AgendaWPF.ViewModels
         [ObservableProperty] private int totalPaginas = 1;
 
         [ObservableProperty] private string? filtroNome;
+
+
         //Enums
         public IEnumerable<IdadeUnidade> IdadesUnidadeDisponiveis => Enum.GetValues(typeof(IdadeUnidade)).Cast<IdadeUnidade>();
         public IEnumerable<Genero> GenerosLista => Enum.GetValues(typeof(Genero)).Cast<Genero>();
         public IEnumerable<TipoEntrega> TiposEntrega => Enum.GetValues(typeof(TipoEntrega)).Cast<TipoEntrega>();
         [ObservableProperty] private TipoEntrega tipoSelecionado = TipoEntrega.Foto;
-
+        private CancellationTokenSource? _detectCts;
         public IAsyncRelayCommand CarregarClientesCommand { get; }
         public IRelayCommand ProximaPaginaCommand { get; }
         public IRelayCommand PaginaAnteriorCommand { get; }
@@ -48,29 +58,182 @@ namespace AgendaWPF.ViewModels
             CarregarClientesCommand = new AsyncRelayCommand(CarregarClientesAsync);
             ProximaPaginaCommand = new RelayCommand(() => MudarPagina(1), () => PaginaAtual < TotalPaginas);
             PaginaAnteriorCommand = new RelayCommand(() => MudarPagina(-1), () => PaginaAtual > 1);
-            _ = CarregarClientesAsync();
+            
+        }
+        public async Task InitAsync()
+        {
+            await CarregarClientesAsync();
+            await _clienteService.PrecarregarCacheClientesAsync();
+            New();
         }
         private async Task CarregarClientesAsync()
         {
-            await Task.Delay(3500);
+            await Task.Delay(500);
             var resultado = await _clienteService.GetClientesPaginadoAsync(PaginaAtual, PageSize, FiltroNome);
 
             Clientes = new ObservableCollection<ClienteDto>(resultado.Items);
             TotalPaginas = resultado.TotalPages;
         }
-
+        public void New()
+        {
+            Mode = FormMode.Create;
+            ClienteId = null;
+            Cliente = new ClienteFormModel
+            {
+                Crianca = new CriancaFormModel() 
+            };
+        }
 
         [RelayCommand]
-        public async Task AdicionarNovoClienteAsync()
+        public async Task SalvarAsync()
         {
-            NovoCliente.Crianca = string.IsNullOrWhiteSpace(NovaCrianca?.Nome)
-            ? null
-            : NovaCrianca;
-            var clienteCriado = await _clienteService.CreateClienteAsync(NovoCliente);
+            if (Mode == FormMode.Create && ClienteExistenteDetectado == false)
+            {
+                var create = Cliente.ToCreateDto();             
+                var clienteCriado = await _clienteService.CreateClienteAsync(create);
 
-            await CarregarClientesAsync();
-            NovoCliente = new ClienteCreateDto();
-            NovaCrianca = new CriancaCreateDto();
+            }
+            else if (Mode == FormMode.Create && ClienteExistenteDetectado == true)
+            {
+                if (ClienteId is null || ClienteId.Value <= 0) return;
+
+                // validação rápida
+                if (Cliente.Crianca is null || string.IsNullOrWhiteSpace(Cliente.Crianca.Nome))
+                    return; // opcional: avisar usuário
+
+                var dtoCrianca = Cliente.Crianca.ToCreateDto();
+                var criada = await _clienteService.CreateCriancaAsync(ClienteId.Value, dtoCrianca);
+
+                // Se quiser, recarregue a lista de crianças do painel lateral:
+                ListaCriancas.Clear();
+                var criancas = await _clienteService.GetByClienteIdAsync(ClienteId.Value);
+                foreach (var c in criancas)
+                    ListaCriancas.Add(c);
+            }
+            else
+            {
+                if (ClienteId is null) return;
+                var update = Cliente.ToUpdateDto(ClienteId.Value); // <- mapper do client
+                await _clienteService.UpdateClienteAsync(ClienteSelecionado.Id, update);
+            }
+            await InitAsync();
+            ClienteExistenteDetectado = false;
+        }
+        public async Task DetectarClientePorCamposAsync(CancellationToken ct)
+        {
+            if (IsEdit)
+                return;
+
+            var tel = Cliente.Telefone?.Trim();
+            var email = Cliente.Email?.Trim();
+            if (string.IsNullOrEmpty(tel) && string.IsNullOrEmpty(email))
+            {
+                ClienteExistenteDetectado = false;
+                ClienteId = 0;
+                ListaCriancas.Clear();
+                return;
+            }
+
+
+            var encontrado = _clienteService.DetectExistingLocal(tel, email);
+            if (encontrado != null)
+            {
+                // preenche campos
+                ClienteId = encontrado.Id;
+                Cliente.Nome = encontrado.Nome;
+                Cliente.Telefone = encontrado.Telefone;
+                Cliente.Email = encontrado.Email;
+
+
+                ListaCriancas.Clear();
+                var criancas = await _clienteService.GetByClienteIdAsync(encontrado.Id);
+                foreach (var c in criancas)
+                    ListaCriancas.Add(c);
+
+                ClienteExistenteDetectado = true;
+            }
+            else
+            {
+                ClienteExistenteDetectado = false;
+            }
+            Debug.WriteLine($"IsEdit={IsEdit}");
+            Debug.WriteLine($"Telefone='{Cliente.Telefone}', Email='{Cliente.Email}'");
+            Debug.WriteLine($"Encontrado? {(encontrado is not null)}");
+        }
+        [RelayCommand]
+        private void EditarClienteSelecionado()
+        {
+
+            if (ClienteSelecionado is null)
+                return;
+            Mode = FormMode.Edit;
+
+            var cliente = Clientes.FirstOrDefault(c => c.Id == ClienteSelecionado.Id);
+            if (cliente is null)
+                return;
+
+            ClienteId = cliente.Id;
+            Cliente.Nome = cliente.Nome;
+            Cliente.Telefone = cliente.Telefone;
+            Cliente.Email = cliente.Email;
+            Cliente.Observacao = cliente.Observacao;
+        }
+        [RelayCommand]
+        public async Task DeleteAsync()
+        {
+            if (ClienteSelecionado == null) return;
+
+            var criList = await _clienteService.GetByClienteIdAsync(ClienteSelecionado.Id);
+            Debug.WriteLine($"criancas encontradas {criList.Count()}");
+            var cri = criList[0];
+            if (cri is null && (ClienteSelecionado.Criancas?.Count ?? 0) == 1)
+                cri = ClienteSelecionado.Criancas![0];
+
+            if (cri != null)
+            {
+                
+                if (System.Windows.MessageBox.Show($"Excluir crianca: {cri.Nome}?",
+                    "Confirmar", MessageBoxButton.YesNo) != MessageBoxResult.Yes) return;
+
+                await _clienteService.DeleteCriancaAsync(cri.Id);
+                return;
+            }
+            
+            if (System.Windows.MessageBox.Show($"Excluir cliente: {ClienteSelecionado.Nome}?",
+                    "Confirmar", MessageBoxButton.YesNo) != MessageBoxResult.Yes) return;
+            await _clienteService.DeleteAsync(ClienteSelecionado.Id);
+
+            Clientes.Remove(ClienteSelecionado);
+            ClienteSelecionado = null;
+            ListaCriancas.Clear();
+            foreach (var c in ListaCriancas)
+                ListaCriancas.Add(c);
+        }
+        private async Task DetectarClientePorCamposDebouncedAsync()
+        {
+            _detectCts?.Cancel();
+            _detectCts = new CancellationTokenSource();
+            var ct = _detectCts.Token;
+
+            try
+            {
+                await Task.Delay(350, ct); // debounce
+
+                if (ct.IsCancellationRequested) return;
+                await DetectarClientePorCamposAsync(ct);
+            }
+            catch (TaskCanceledException) { /* ignorar */ }
+        }
+        partial void OnClienteChanged(ClienteFormModel value)
+        {
+            if (value is null) return;
+            value.PropertyChanged -= ClienteOnPropertyChanged;
+            value.PropertyChanged += ClienteOnPropertyChanged;
+        }
+        private async void ClienteOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName is nameof(ClienteFormModel.Telefone) or nameof(ClienteFormModel.Email))
+                await DetectarClientePorCamposDebouncedAsync();
         }
 
         private async void MudarPagina(int delta)
@@ -111,5 +274,6 @@ namespace AgendaWPF.ViewModels
                 Debug.WriteLine(ex);
             }
         }
+
     }
 }

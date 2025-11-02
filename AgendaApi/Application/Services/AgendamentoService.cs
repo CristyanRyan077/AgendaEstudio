@@ -1,6 +1,8 @@
-﻿using AgendaApi.Extensions;
+﻿using AgendaApi.Domain;
+using AgendaApi.Extensions;
 using AgendaApi.Extensions.DtoMapper;
 using AgendaApi.Extensions.MiddleWares;
+using AgendaApi.Infra;
 using AgendaApi.Infra.Interfaces;
 using AgendaApi.Interfaces;
 using AgendaApi.Models;
@@ -13,11 +15,13 @@ namespace AgendaApi.Services
     {
         private readonly IAgendamentoRepository _repository;
         private readonly IPagamentoRepository _pagamentoRepository;
+        private readonly AgendaContext _context;
 
-        public AgendamentoService(IAgendamentoRepository repository, IPagamentoRepository pagamentoRepository)
+        public AgendamentoService(IAgendamentoRepository repository, IPagamentoRepository pagamentoRepository, AgendaContext context)
         {
             _repository = repository;
             _pagamentoRepository = pagamentoRepository;
+            _context = context;
         }
         public async Task<Agendamento> GetAgendamentoOrThrowAsync(int id)
         {
@@ -36,7 +40,20 @@ namespace AgendaApi.Services
             var agendamento = await GetAgendamentoOrThrowAsync(id);
             return agendamento.ToDto();
         }
+        public async Task<Result> ReagendarAsync(int agendamentoId, DateTime novaData, TimeSpan novoHorario)
+        {
+            var agendamento = await _context.Agendamentos.FindAsync(agendamentoId);
+            if (agendamento == null) return Result.Fail("Agendamento não encontrado");
 
+            var conflito = await _context.Agendamentos.AnyAsync(a => a.Data == novaData && a.Horario == novoHorario);
+            if (conflito) return Result.Fail("Este horario está ocupado");
+
+            agendamento.Data = novaData;
+            agendamento.Horario = novoHorario;
+
+            await _context.SaveChangesAsync();
+            return Result.Ok();
+        }
         public async Task<AgendamentoDto> CreateAsync(AgendamentoCreateDto dto)
         {
             var agendamento = dto.ToEntity();

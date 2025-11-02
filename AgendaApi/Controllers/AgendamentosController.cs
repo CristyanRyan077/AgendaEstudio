@@ -1,5 +1,6 @@
 ﻿using AgendaApi.Interfaces;
 using AgendaApi.Models;
+using AgendaApi.Services;
 using AgendaShared.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -64,6 +65,21 @@ namespace AgendaApi.Controllers
                 return NotFound("Nenhum agendamento encontrado no período informado.");
 
             return Ok(agendamentos);
+        }
+        [HttpPatch("{id}/reagendar")]
+        public async Task<IActionResult> Reagendar(int id, [FromBody] ReagendarDto dto)
+        {
+            
+            var resultado = await _service.ReagendarAsync(id, dto.NovaData, dto.NovoHorario);
+
+            if (resultado.IsFailure) 
+            {
+
+                return BadRequest(resultado.Error);
+            }
+
+            // 3. Se deu sucesso, retorna sucesso
+            return NoContent(); // HTTP 204
         }
 
 

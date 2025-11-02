@@ -12,6 +12,7 @@ using static System.Net.WebRequestMethods;
 
 namespace AgendaWPF.Services
 {
+
     public interface IClienteService
     {
         Task<List<ClienteDto>> ObterClientesAsync();
@@ -20,14 +21,74 @@ namespace AgendaWPF.Services
         Task<List<AgendamentoDto>> GetHistoricoAsync(int id);
         Task<ClienteDto> GetByIdAsync(int id);
         Task<ClienteDto> CreateClienteAsync(ClienteCreateDto clienteCreateDto);
-        Task<CriancaDto> CreateCriancaAsync(CriancaCreateDto criancaCreateDto);
+        Task<CriancaDto> CreateCriancaAsync(int clienteId, CriancaCreateDto criancaCreateDto);
+        Task<ClienteDto> UpdateClienteAsync(int id, ClienteUpdateDto dto, CancellationToken ct = default);
+        public ClienteResumoDto? DetectExistingLocal(string? telefone, string? email);
+        Task PrecarregarCacheClientesAsync(CancellationToken ct = default);
+        Task DeleteAsync(int id);
+        Task DeleteCriancaAsync(int id);
+
     }
+
     public class ClienteService : IClienteService
     {
+        private List<ClienteResumoDto> _cacheClientes = new();
+        public bool CachePronto { get; private set; }
+
         private readonly HttpClient _http;
         public ClienteService()
         {
             _http = new HttpClient { BaseAddress = new Uri("http://192.168.30.121:5000/") };
+        }
+        public async Task PrecarregarCacheClientesAsync(CancellationToken ct = default)
+        {
+            CachePronto = false;
+            _cacheClientes = await _http.GetFromJsonAsync<List<ClienteResumoDto>>("api/clientes/resumos", ct)
+                              ?? new List<ClienteResumoDto>();
+            CachePronto = true;
+        }
+        public ClienteResumoDto? DetectExistingLocal(string? telefone, string? email)
+        {
+            string NormTel(string? t) => string.IsNullOrWhiteSpace(t) ? "" : new string(t.Where(char.IsDigit).ToArray());
+            string NormMail(string? m) => string.IsNullOrWhiteSpace(m) ? "" : m.Trim().ToLowerInvariant();
+
+            var tel = NormTel(telefone);
+            var mail = NormMail(email);
+
+            if (!string.IsNullOrEmpty(tel))
+            {
+                var byTel = _cacheClientes.FirstOrDefault(c => NormTel(c.Telefone) == tel);
+                if (byTel != null) return byTel;
+            }
+            if (!string.IsNullOrEmpty(mail))
+            {
+                var byMail = _cacheClientes.FirstOrDefault(c => NormMail(c.Email) == mail);
+                if (byMail != null) return byMail;
+            }
+            return null;
+        }
+        public async Task<ClienteDto> UpdateClienteAsync(int id, ClienteUpdateDto dto, CancellationToken ct = default)
+        {
+            try
+            {
+                var resp = await _http.PutAsJsonAsync($"api/clientes/{id}", dto, ct);
+
+                // Alguns endpoints retornam 204 NoContent no update:
+                if (resp.StatusCode == System.Net.HttpStatusCode.NoContent)
+                {
+                    // opcional: buscar o atualizado
+                    return await GetByIdAsync(id);
+                }
+
+                resp.EnsureSuccessStatusCode();
+                var updated = await resp.Content.ReadFromJsonAsync<ClienteDto>(cancellationToken: ct);
+                return updated ?? new ClienteDto();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.ToString());
+                return new ClienteDto();
+            }
         }
         public async Task<List<ClienteDto>> ObterClientesAsync()
         {
@@ -85,11 +146,11 @@ namespace AgendaWPF.Services
                 return new ClienteDto();
             }
         }
-        public async Task<CriancaDto> CreateCriancaAsync(CriancaCreateDto criancaCreateDto)
+        public async Task<CriancaDto> CreateCriancaAsync(int id, CriancaCreateDto criancaCreateDto)
         {
             try
             {
-                var response = await _http.PostAsJsonAsync("api/criancas", criancaCreateDto);
+                var response = await _http.PostAsJsonAsync($"api/criancas/by-cliente/{id}", criancaCreateDto);
                 response.EnsureSuccessStatusCode();
                 var createdCrianca = await response.Content.ReadFromJsonAsync<CriancaDto>();
                 return createdCrianca ?? new CriancaDto();
@@ -105,7 +166,7 @@ namespace AgendaWPF.Services
         {
             try
             {
-                var criancasdocliente = await _http.GetFromJsonAsync<List<CriancaDto>>("api/criancas/{id}/by-clienteId");
+                var criancasdocliente = await _http.GetFromJsonAsync<List<CriancaDto>>($"api/criancas/{id}/by-clienteId");
                 return criancasdocliente ?? new List<CriancaDto>();
             }
             catch (Exception ex)
@@ -133,6 +194,18 @@ namespace AgendaWPF.Services
                 return new PagedResult<ClienteDto>();
             }
 
+        }
+        public async Task DeleteAsync(int id)
+        {
+            var resp = await _http.DeleteAsync($"api/clientes/{id}");
+            if (resp.StatusCode == System.Net.HttpStatusCode.NoContent) return;
+            resp.EnsureSuccessStatusCode();
+        }
+        public async Task DeleteCriancaAsync(int id)
+        {
+            var resp = await _http.DeleteAsync($"api/criancas/{id}");
+            if (resp.StatusCode == System.Net.HttpStatusCode.NoContent) return;
+            resp.EnsureSuccessStatusCode();
         }
     }
 }

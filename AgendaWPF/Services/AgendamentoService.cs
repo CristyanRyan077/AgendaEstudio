@@ -18,13 +18,14 @@ namespace AgendaWPF.Services
         Task<PagamentoDto> AddPagamentoAsync(int agendamentoId, PagamentoCreateDto dto, CancellationToken ct = default);
         Task<AgendamentoDto> AgendarAsync(AgendamentoCreateDto dto, CancellationToken ct = default);
         Task<AgendamentoDto> GetByIdAsync(int id);
+        Task ReagendarAsync(int id, ReagendarDto dto);
     }
 
     public class AgendamentoService : IAgendamentoService
     {
         private static readonly HttpClient _http = new HttpClient
         {
-            BaseAddress = new Uri("http://192.168.30.121:5000/") 
+            BaseAddress = new Uri("http://192.168.30.121:5000/")
         };
         public async Task<List<AgendamentoDto>> ObterAgendamentosAsync()
         {
@@ -83,6 +84,15 @@ namespace AgendaWPF.Services
             else
                 throw new Exception($"Erro ao agendar: {resp.StatusCode} - {await resp.Content.ReadAsStringAsync(ct)}");
         }
-        
+        public async Task ReagendarAsync(int id, ReagendarDto dto)
+        {
+            var url = $"api/agendamentos/{id}/reagendar";
+            var response = await _http.PatchAsJsonAsync(url, dto);
+            if (!response.IsSuccessStatusCode)
+            {
+                string erro = await response.Content.ReadAsStringAsync();
+                throw new Exception(erro);
+            }
+        }
     }
 }

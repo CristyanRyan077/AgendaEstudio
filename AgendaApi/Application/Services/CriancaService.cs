@@ -9,8 +9,13 @@ namespace AgendaApi.Application.Services
 {
     public class CriancaService : ICriancaService
     {
+        private readonly IClienteService _clienteService;
         private readonly ICriancaRepository _repository;
-        public CriancaService(ICriancaRepository repository) => _repository = repository;
+        public CriancaService(ICriancaRepository repository, IClienteService clienteService) 
+        {
+            _repository = repository;
+            _clienteService = clienteService;
+        }
 
         public async Task<Crianca> GetCriancaOrThrowAsync(int id)
         {
@@ -36,9 +41,12 @@ namespace AgendaApi.Application.Services
             return cri.Select(c => c.ToDto());
         }
 
-        public async Task<CriancaDto> CreateAsync(CriancaCreateDto dto)
+        public async Task<CriancaDto> CreateAsync(int clienteId, CriancaCreateDto dto)
         {
+            var cliente = await _clienteService.GetClienteOrThrowAsync(clienteId);
+
             var entity = dto.ToEntity();
+            entity.ClienteId = cliente.Id;
             await _repository.AddAsync(entity);
             return entity.ToDto();
         }

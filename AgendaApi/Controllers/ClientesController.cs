@@ -39,6 +39,12 @@ namespace AgendaApi.Controllers
             return Ok(agendamentos);
         }
 
+        [HttpGet("resumos")]
+        public async Task<ActionResult<List<ClienteResumoDto>>> GetResumos()
+        {
+            var resumos = await _service.GetAllResumoAsync();
+            return Ok(resumos);
+        }
         [HttpPost]
         public async Task<ActionResult<ClienteDto>> Create(ClienteCreateDto dto)
         {

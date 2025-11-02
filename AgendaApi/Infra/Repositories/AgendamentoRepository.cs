@@ -37,7 +37,6 @@ namespace AgendaApi.Repositories
             await _context.Agendamentos.AddAsync(agendamento);
             await _context.SaveChangesAsync();
         }
-
         public async Task UpdateAsync(Agendamento agendamento)
         {
             _context.Agendamentos.Update(agendamento);

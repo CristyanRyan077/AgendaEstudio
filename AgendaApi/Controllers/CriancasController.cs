@@ -31,10 +31,10 @@ namespace AgendaApi.Controllers
             return Ok(item);
         }
 
-        [HttpPost]
-        public async Task<ActionResult<CriancaDto>> Create(CriancaCreateDto dto)
+        [HttpPost("by-cliente/{clienteId}")]
+        public async Task<ActionResult<CriancaDto>> Create(int clienteId, [FromBody] CriancaCreateDto dto)
         {
-            var novo = await _service.CreateAsync(dto);
+            var novo = await _service.CreateAsync(clienteId, dto);
             return CreatedAtAction(nameof(GetById), new { id = novo.Id }, novo);
         }
 

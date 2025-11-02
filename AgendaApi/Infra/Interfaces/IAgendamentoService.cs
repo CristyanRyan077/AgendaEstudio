@@ -1,4 +1,5 @@
-﻿using AgendaApi.Models;
+﻿using AgendaApi.Domain;
+using AgendaApi.Models;
 using AgendaShared.DTOs;
 
 namespace AgendaApi.Interfaces
@@ -12,5 +13,6 @@ namespace AgendaApi.Interfaces
         Task<AgendamentoDto?> UpdateAsync(int id, AgendamentoUpdateDto dto);
         Task<bool> DeleteAsync(int id);
         Task<IEnumerable<AgendamentoDto>> ObterPorPeriodoAsync(DateTime inicio, DateTime fim);
+        Task<Result> ReagendarAsync(int agendamentoId, DateTime novaData, TimeSpan novoHorario);
     }
 }

@@ -48,7 +48,7 @@ namespace AgendaWPF.ViewModels
         }
         public async Task InicializarAsync()
         {
-            await Task.Delay(500);
+            await Task.Delay(200);
             await CarregarSemanaAtualAsync();
         }
 

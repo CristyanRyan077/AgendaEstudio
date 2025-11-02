@@ -27,6 +27,9 @@ namespace AgendaWPF.Views
             InitializeComponent();
             viewmodel = vm;
             DataContext = viewmodel;
+            Loaded += async (_, __) => await viewmodel.InitAsync();
         }
+
+
     }
 }

@@ -17,6 +17,7 @@ namespace AgendaWPF.Models
 
         [ObservableProperty]
         private ObservableCollection<AgendamentoDto> agendamentos = new();
+        [ObservableProperty] private bool selecionado;
 
     }
 
