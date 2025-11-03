@@ -1,10 +1,15 @@
-﻿<UserControl x:Class="AgendaWPF.Views.CalendarioView"
+﻿<UserControl x:Name="Calendario"
+             x:Class="AgendaWPF.Views.CalendarioView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:AgendaWPF.Views"
-             mc:Ignorable="d" xmlns:hc="https://handyorg.github.io/handycontrol" xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes" xmlns:models="clr-namespace:AgendaWPF.Models" xmlns:viewmodels="clr-namespace:AgendaWPF.ViewModels" d:DataContext="{d:DesignInstance Type=viewmodels:CalendarioViewModel}"
+             xmlns:shared="clr-namespace:AgendaShared.DTOs;assembly=AgendaShared"
+             mc:Ignorable="d" xmlns:hc="https://handyorg.github.io/handycontrol"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:models="clr-namespace:AgendaWPF.Models" xmlns:viewmodels="clr-namespace:AgendaWPF.ViewModels"
+             xmlns:controles="clr-namespace:AgendaWPF.Controles"
+             d:DataContext="{d:DesignInstance Type=viewmodels:CalendarioViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid Background="#FF333333">
 
@@ -93,7 +98,8 @@
                                     PreviewDrop="Dia_PreviewDrop"
                                     MouseUp="Agendamento_MouseUp"
                                     MouseDown="Dia_MouseDown">
-                                    <Border.Style>
+                                
+                                <Border.Style>
                                         <Style TargetType="Border">
                                             <Setter Property="BorderBrush" Value="Gray"/>
                                             <Setter Property="BorderThickness" Value="0.5"/>
@@ -134,43 +140,45 @@
                                             VerticalScrollBarVisibility="Auto"
                                             HorizontalScrollBarVisibility="Auto"
                                             Margin="0,0,0,0">
-                                            <ItemsControl ItemsSource="{Binding Agendamentos}">
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate>
-                                                            <Border x:Name="ItemBorder"
-                                                                          Margin="0,2" Padding="6,4"
-                                                                          CornerRadius="6"
-                                                                          Background="{Binding EstaPago, Converter={StaticResource PagoParaCor}}"
-                                                                          MouseDown="Agendamento_MouseDown"
-                                                                          PreviewMouseDown="ItemBorder_PreviewMouseRightButtonDown"
-                                                                          Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}">
-                                                                <Grid>
-                                                                    <StackPanel Orientation="Horizontal" Margin="6,0,0,0"
-                                                                            Cursor="Hand" PreviewMouseMove="Agendamento_PreviewMouseMove">
-                                                                        <TextBlock Text="{Binding Horario, StringFormat=\{0:hh\\:mm\}}"/>
-                                                                        <TextBlock Text="-" Margin="6,0"/>
-                                                                        <TextBlock Text="{Binding Cliente.Nome}" MaxWidth="120" Margin="0,0,10,0" FontSize="12" TextTrimming="CharacterEllipsis"/>
-                                                                        <TextBlock Text="{Binding Crianca.Nome}" MaxWidth="120" FontSize="12" TextTrimming="CharacterEllipsis"/>
-                                                                        <Ellipse  Width="10" Height="10" 
+
+                                        <ItemsControl ItemsSource="{Binding Agendamentos}">
+
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border x:Name="ItemBorder"
+                                                            Margin="0,2" Padding="6,4"
+                                                            CornerRadius="6" Cursor="Hand"
+                                                            Background="{Binding EstaPago, Converter={StaticResource PagoParaCor}}"                                                             
+                                                            Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            PreviewMouseLeftButtonDown="Agendamento_PreviewMouseLeftButtonDown"
+                                                            PreviewMouseMove="Agendamento_PreviewMouseMove"
+                                                            PreviewMouseLeftButtonUp="Agendamento_PreviewMouseLeftButtonUp">
+                                                        <Grid>
+                                                            <StackPanel Orientation="Horizontal" Margin="6,0,0,0">
+                                                                <TextBlock Text="{Binding Horario, StringFormat=\{0:hh\\:mm\}}"/>
+                                                                <TextBlock Text="-" Margin="6,0"/>
+                                                                <TextBlock Text="{Binding Cliente.Nome}" MaxWidth="120" Margin="0,0,10,0" FontSize="12" TextTrimming="CharacterEllipsis"/>
+                                                                <TextBlock Text="{Binding Crianca.Nome}" MaxWidth="120" FontSize="12" TextTrimming="CharacterEllipsis"/>
+                                                                <Ellipse  Width="10" Height="10" 
                                                                                   Stroke="White"
                                                                                   StrokeThickness="1"                                                                     
                                                                                   Margin="10,0,15,0"/>
-                                                                        
-                                                                    </StackPanel>
-                                                                </Grid>
-                                                            </Border>
 
-                                                        <DataTemplate.Triggers>
-                                                            <Trigger SourceName="ItemBorder" Property="IsMouseOver" Value="True">
-                                                                <Setter TargetName="ItemBorder" Property="BorderBrush" Value="#4DA3FF"/>
-                                                                <Setter Property="Opacity" Value="0.6"/>
-                                                            </Trigger>
-                                                        </DataTemplate.Triggers>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
-                                        </ScrollViewer>
-                                    </Grid>
+                                                            </StackPanel>
+                                                        </Grid>
+                                                    </Border>
+
+                                                    <DataTemplate.Triggers>
+                                                        <Trigger SourceName="ItemBorder" Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="ItemBorder" Property="BorderBrush" Value="#4DA3FF"/>
+                                                            <Setter Property="Opacity" Value="0.6"/>
+                                                        </Trigger>
+                                                    </DataTemplate.Triggers>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                </Grid>
                                 </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -178,13 +186,194 @@
                 </Grid>
             </ScrollViewer>
 
+        <Grid x:Name="OverlayHost"
+          Panel.ZIndex="99"
+          Visibility="{Binding DataContext.MostrarDetalhes,
+                               ElementName=Calendario,
+                               Converter={StaticResource BoolToVisibilityConverter}}">
+            <Grid.Resources>
+                <Style TargetType="hc:TextBox" BasedOn="{StaticResource {x:Type hc:TextBox}}">
+                    <Setter Property="Background" Value="#88D1D3D8" />
+                    <Setter Property="Foreground" Value="Black" />
+                    <Setter Property="FontFamily" Value="Helvetica" />
+                    <Setter Property="FontSize" Value="20" />
+                    <Setter Property="FontWeight" Value="Bold" />
+                    <Setter Property="BorderBrush" Value="Transparent" />
+                    <Setter Property="SelectionTextBrush" Value="Black" />
+                    <Setter Property="Height" Value="60" />
+                    <Setter Property="Margin" Value="5" />
+                </Style>
+
+                <Style TargetType="hc:ComboBox" BasedOn="{StaticResource {x:Type hc:ComboBox}}">
+                    <Setter Property="Background" Value="#88D1D3D8" />
+                    <Setter Property="Foreground" Value="Black" />
+                    <Setter Property="FontFamily" Value="Helvetica" />
+                    <Setter Property="FontSize" Value="20" />
+                    <Setter Property="FontWeight" Value="Bold" />
+                    <Setter Property="BorderBrush" Value="Transparent" />
+                    <Setter Property="SelectionTextBrush" Value="Black" />
+                    <Setter Property="Height" Value="60" />
+                    <Setter Property="Margin" Value="5" />
+                </Style>
+            </Grid.Resources>
+
+            <!-- Backdrop escurecido (clica para fechar) -->
+            <Border x:Name="Backdrop"
+                     Opacity="{Binding DataContext.MostrarDetalhes,
+                    ElementName=Calendario,
+                    Converter={StaticResource BoolToOpacity}}"
+                    Background="#80000000">
+
+                <Border.InputBindings>
+                    <MouseBinding MouseAction="LeftClick"
+                          Command="{Binding FecharDetalhesCommand}"/>
+                </Border.InputBindings>
+            </Border>
+
+            <!-- Slide-over à direita -->
+            <Border x:Name="DetailsPane"
+            Width="520"
+            HorizontalAlignment="Right"
+            Background="{DynamicResource {x:Static SystemColors.ControlLightLightBrushKey}}"
+            CornerRadius="16,0,0,16"
+            Padding="20"
+            Effect="{DynamicResource ElevationShadow}">
+                <Border.RenderTransform>
+                    <TranslateTransform  X="{Binding DataContext.MostrarDetalhes,
+                          ElementName=Calendario,
+                          Converter={StaticResource BoolToOffset}}"/>
+                </Border.RenderTransform>
+
+                <!-- Conteúdo (subview com DataContext = AgendamentoSelecionado) -->
+                <ContentControl Content="{Binding AgendamentoSelecionado}">
+                    <ContentControl.ContentTemplate>
+                        <DataTemplate DataType="{x:Type shared:AgendamentoDto}">
+                            <!-- Exemplo de layout limpo -->
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding ClienteId, StringFormat='#{0:}'}" FontSize="16" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Cliente.Nome}"
+                                    FontSize="22" FontWeight="Bold" Margin="5,0,10,4"/>
+                                    <TextBlock Text="{Binding Cliente.Telefone}"
+                                    FontSize="18" VerticalAlignment="Center" FontWeight="Bold"/>
+                                </StackPanel>
+       
+                                <Button Grid.Column="1"
+                                Command="{Binding DataContext.FecharDetalhesCommand,
+                                                  RelativeSource={RelativeSource AncestorType=Window}}"
+                                Content="Fechar" Padding="12,6" />
+
+                                <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,2,0,0">
+                                    <TextBlock Text="{Binding Data, StringFormat='{}{0: dd/MM/yyyy}'}" FontSize="14" />
+                                    <TextBlock Text=" • "/>
+                                    <TextBlock Text="{Binding Horario,StringFormat=\{0:hh\\:mm\}h}" FontSize="14" />
+                                    <TextBlock Text=" • "/>
+                                    <TextBlock Text="{Binding Tema, TargetNullValue='Sem tema'}" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="2" Margin="2,5,0,0">
+
+                                    <TextBlock Text="{Binding Servico.Nome}" />
+                                    <TextBlock Text="{Binding Pacote.Nome, TargetNullValue='—'}" />
+                                    <TextBlock IsEnabled="False">
+                                    <Run Text="Valor: "/>
+                                    <Run Text="{Binding Valor, StringFormat={}{0:C}}"/>
+                                    <Run Text="  (Pago: "/>
+                                    <Run Text="{Binding ValorPago, Mode=OneWay, StringFormat={}{0:C}}"/>
+                                    <Run Text=")"/>
+                                    </TextBlock>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Crianca: "/>
+                                        <TextBlock Text="{Binding Crianca.Nome, TargetNullValue='—'}" Margin="0,0,5,0" />
+                                        <TextBlock Text="{Binding MesversarioFormatado}"/>
+                                    </StackPanel>
+                                
+                                </StackPanel>
+
+                                <!-- Tabs simples (detalhes / pagamentos / histórico) -->
+                                <TabControl Grid.Row="3" Grid.ColumnSpan="2" Margin="0,16,0,0">
+                                    <TabItem Header="Detalhes">
+                                        <controles:EtapaFotos/>
+                                    </TabItem>
+                                    <TabItem Header="Pagamentos">
+                                        <DataGrid ItemsSource="{Binding Pagamentos}"
+                                              AutoGenerateColumns="False"
+                                              CanUserAddRows="False"
+                                              CanUserDeleteRows="False"
+                                              HeadersVisibility="Column"
+                                              Background="LightGray" BorderBrush="#DDD"
+                                              BorderThickness="1" RowHeight="35"
+                                              ColumnHeaderHeight="40"
+                                              FontSize="14" FontFamily="Segoe UI"
+                                              GridLinesVisibility="None"
+                                               
+                                              SnapsToDevicePixels="True">
+                                            <DataGrid.Effect>
+                                                <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.3"/>
+                                            </DataGrid.Effect>
+                                            <DataGrid.Resources>
+                                                <!-- Cabeçalhos -->
+                                                <Style TargetType="DataGridColumnHeader">
+                                                    <Setter Property="Background" Value="#2D89EF"/>
+                                                    <Setter Property="Foreground" Value="White"/>
+                                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                                    <Setter Property="Padding" Value="8"/>
+                                                </Style>
+                                                <!-- Linhas -->
+                                                <Style TargetType="DataGridRow">
+                                                    <Setter Property="Cursor" Value="Hand"/>
+                                                    <Setter Property="SnapsToDevicePixels" Value="True"/>
+                                                    <Setter Property="ToolTip" Value="Clique para selecionar esta linha"/>
+                                                    <Style.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter Property="Background" Value="#E3F2FD"/>
+                                                        </Trigger>
+                                                        <Trigger Property="IsSelected" Value="True">
+                                                            <Setter Property="Background" Value="#BBDEFB"/>
+                                                            <Setter Property="Foreground" Value="Black"/>
+                                                        </Trigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </DataGrid.Resources>
+                                            <DataGrid.Columns>
+                                                <DataGridTextColumn Header="Data" Binding="{Binding DataPagamento, StringFormat={}{0:dd/MM/yyyy}}"/>
+                                                <DataGridTextColumn Header="Valor" Binding="{Binding Valor, StringFormat={}{0:C}}"/>
+                                                <DataGridTextColumn Header="Método" Binding="{Binding Metodo}"/>
+                                                <DataGridTextColumn Header="Observações" Binding="{Binding Observacao}" Width="*"/>
+                                            </DataGrid.Columns>
+                                        </DataGrid>
+                                    </TabItem>
+                                    <TabItem Header="Histórico">
+                                        <!-- histórico do cliente -->
+                                        <!-- ... -->
+                                    </TabItem>
+                                </TabControl>
+                            </Grid>
+                        </DataTemplate>
+                    </ContentControl.ContentTemplate>
+                </ContentControl>
+            </Border>
+        </Grid>
 
 
 
 
 
 
-            <!-- 
+
+        <!-- 
             <Grid x:Name="PagamentosOverlay"
       Visibility="{Binding MostrarPagamentos, Converter={StaticResource BoolToVisibilityConverter}}"
       Background="#80000000"
@@ -263,4 +452,5 @@
 
             </Grid> -->
     </Grid> 
+    
 </UserControl>

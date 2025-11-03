@@ -33,6 +33,7 @@ namespace AgendaWPF.Views
         private AgendarView? _agendar;
         private readonly IServiceProvider _sp;
         private AgendaState _agendaState;
+        private bool _dragging;
         public CalendarioViewModel viewmodel { get; }
         public CalendarioView(CalendarioViewModel vm, IServiceProvider sp, AgendaState state)
         {
@@ -123,23 +124,33 @@ namespace AgendaWPF.Views
                 return;
 
             var data = new DataObject(typeof(AgendamentoDto), ag);
+            _mouseDown = false;
+            _dragging = true;
+            e.Handled = true;
             DragDrop.DoDragDrop(fe, data, DragDropEffects.Move);
 
-            _mouseDown = false;
+
         }
 
-        private void Agendamento_MouseDown(object sender, MouseButtonEventArgs e)
+        private void Agendamento_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             if (sender is not FrameworkElement fe) return;
-            if (fe.DataContext is not AgendamentoDto ag) return;
-            if (DataContext is CalendarioViewModel vm)
-              //  vm.SelecionarAgendamento(ag);
-            e.Handled = true;
-            if (e.LeftButton == MouseButtonState.Pressed)
+            if (fe.DataContext is not AgendamentoDto ag) { _mouseDown = false; _dragging = false; return; }
+
+            // Clique só acontece se NÃO virou arrasto
+            if (_mouseDown && !_dragging)
             {
-                _mouseDown = true;
-                _dragStart = e.GetPosition(null); // guarda posição inicial
+                // Dispara o comando manualmente
+                if (DataContext is CalendarioViewModel vm &&
+                    vm.AbrirDetalhesCommand.CanExecute(ag))
+                {
+                    vm.AbrirDetalhesCommand.Execute(ag);
+                    e.Handled = true; // opcional
+                }
             }
+
+            _mouseDown = false;
+            _dragging = false;
         }
         private void Dia_PreviewDragOver(object sender, DragEventArgs e)
         {
@@ -192,6 +203,17 @@ namespace AgendaWPF.Views
         {
             ((Border)sender).ClearValue(Border.BackgroundProperty);
             e.Handled = true;
+        }
+
+        private void Agendamento_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is not FrameworkElement fe) return;
+            if (fe.DataContext is not AgendamentoDto) return;
+
+            _mouseDown = true;
+            _dragging = false;
+            _dragStart = e.GetPosition(null);
+         
         }
     }
 }

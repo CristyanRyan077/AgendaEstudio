@@ -1,4 +1,6 @@
-﻿using AgendaShared.Enums;
+﻿
+using AgendaShared;
+using AgendaShared.DTOs;
 using AgendaWPF.Models;
 using System;
 using System.Collections.Generic;
@@ -10,12 +12,12 @@ using System.Windows.Data;
 
 namespace AgendaWPF.Converters
 {
-    /*
+    
     public class EtapaLookupConverter : IMultiValueConverter
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            if (values?.Length < 2 || values[0] is not IEnumerable<AgendamentoEtapa> etapas)
+            if (values?.Length < 2 || values[0] is not IEnumerable<EtapaFotosDto> etapas)
                 return string.Empty;
 
             var etapaEnum = (EtapaFotos)values[1];
@@ -47,7 +49,7 @@ namespace AgendaWPF.Converters
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
-            => throw new NotSupportedException();
-    } */
+          => throw new NotSupportedException();
+    } 
 
 }

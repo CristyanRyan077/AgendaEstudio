@@ -19,7 +19,7 @@
             <conv:MenorQueConverter x:Key="MenorQueConverter"/>
             <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
             <conv:StageParamConverter x:Key="StageParamConverter"/>
-
+            <conv:EtapaLookupConverter x:Key="EtapaLookupConverter"/>
             <conv:EnumToBoolConverter x:Key="EnumToBoolConverter"/>
             <conv:TruncateConverter x:Key="TruncateConverter" Max="60"/>
             <conv:NotificacaoGrupoConverter x:Key="NotificacaoGrupoConverter"/>
@@ -44,6 +44,8 @@
             <conv:BoolToTextConverter x:Key="BoolToTextConverter" 
                                TrueText="Salvar"
                                FalseText=" ➕ Adicionar Pagamento"/>
+            <conv:BoolToOffsetConverter x:Key="BoolToOffset" Fechado="600" Aberto="0"/>
+            <conv:BoolToOpacityConverter x:Key="BoolToOpacity"/>
 
             <Style x:Key="NavButtonStyle" TargetType="Button">
                 <Setter Property="Height" Value="70"/>

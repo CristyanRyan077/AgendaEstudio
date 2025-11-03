@@ -1,5 +1,6 @@
-﻿using AgendaApi.Models;
+﻿
 using AgendaShared.DTOs;
+using AgendaWPF.Converters;
 using AgendaWPF.Models;
 using AgendaWPF.Services;
 using AgendaWPF.Views;
@@ -22,23 +23,30 @@ namespace AgendaWPF.ViewModels
     public partial class CalendarioViewModel : ObservableObject
     {
         private readonly IAgendamentoService _agendamentoService;
+        private readonly IPagamentoService _pagamentoservice;
         private readonly IMessenger _messenger;
         private CancellationTokenSource? _loadCts;
-        [ObservableProperty] private AgendamentoDto agendamentoSelecionado;
+        [ObservableProperty] private AgendamentoDto? agendamentoSelecionado;
         [ObservableProperty] private DateTime dataSelecionada = DateTime.Today;
-        [ObservableProperty]
-        private DateTime mesAtual = DateTime.Today;
+        [ObservableProperty] private DateTime mesAtual = DateTime.Today;
         [ObservableProperty] private int agendamentoId;
+        [ObservableProperty] private ObservableCollection<HistoricoFinanceiroDto> historico = new();
+        public IRelayCommand<SetEtapaParam> AbrirEtapaDialogCommand { get; }
         public IAsyncRelayCommand<(AgendamentoDto ag, DateTime novaData)> MoverAgendamentoAsyncCommand { get; }
-
+        [ObservableProperty] private bool mostrarDetalhes;
         [ObservableProperty] ObservableCollection<AgendamentoDto> listaAgendamentos = new();
         public ObservableCollection<string> DiasSemana { get; set; } = new();
-        public CalendarioViewModel(IAgendamentoService agendamentoService, IMessenger messenger)
+        public CalendarioViewModel(
+            IPagamentoService pagamentoservice,
+            IAgendamentoService agendamentoService,
+            IMessenger messenger)
         {
             _agendamentoService = agendamentoService;
+            _pagamentoservice = pagamentoservice;
             _messenger = messenger;
             MesAtual = DateTime.Today;
             MoverAgendamentoAsyncCommand = new AsyncRelayCommand<(AgendamentoDto ag, DateTime novaData)>(ReagendarAsync);
+            AbrirEtapaDialogCommand = new RelayCommand<SetEtapaParam>(AbrirEtapaDialog);
 
             messenger.Register<AgendamentoCriadoMessage>(this, (_, msg) =>
             {
@@ -265,6 +273,19 @@ namespace AgendaWPF.ViewModels
                 d.Selecionado = d.Data.Date == novaDataDate;
 
         }
+        [RelayCommand]
+        private void AbrirDetalhes(AgendamentoDto ag)
+        {
+            AgendamentoSelecionado = ag;
+            Debug.WriteLine($"[ABRIR DETALHES] Agendamento Selecionado = {AgendamentoSelecionado.Id}");
+            MostrarDetalhes = true;
+        }
+        [RelayCommand]
+        private void FecharDetalhes()
+        {
+            MostrarDetalhes = false;
+            AgendamentoSelecionado = null;
+        }
         partial void OnMesAtualChanged(DateTime value) => _ = ReloadMonthAsync();
         private readonly List<TimeSpan> _horariosFixos = new()
         {
@@ -278,5 +299,47 @@ namespace AgendaWPF.ViewModels
             TimeSpan.Parse("18:00"),
             TimeSpan.Parse("19:00")
         };
+        public void AbrirEtapaDialog(SetEtapaParam p)
+        {
+            if (p?.Agendamento is null) return;
+
+            var vm = new EtapaDialogVM
+            {
+                AgendamentoId = p.Agendamento.Id,
+                Etapa = p.Etapa,
+                DataConclusao = DateTime.Today,
+                Observacao = null
+            };
+
+            var dialog = new EtapaDialogView { DataContext = vm }; // mini window/usercontrol
+            var ok = dialog.ShowDialog() == true;
+            if (!ok) return;
+
+            // Persistir
+           /* var saved = _agendamentoService.AddOrUpdateEtapa(
+               // vm.AgendamentoId, vm.Etapa, vm.DataConclusao, vm.Observacao);
+           var local = p.Agendamento.Etapas.FirstOrDefault(x => x.Etapa == saved.Etapa);
+            if (local == null)
+                p.Agendamento.Etapas.Add(new AgendaNovo.Models.AgendamentoEtapa
+                {
+                    Id = saved.Id,
+                    AgendamentoId = saved.AgendamentoId,
+                    Etapa = saved.Etapa,
+                    DataConclusao = saved.DataConclusao,
+                    Observacao = saved.Observacao,
+                    CreatedAt = saved.CreatedAt,
+                    UpdatedAt = saved.UpdatedAt
+                });
+            else
+            {
+                local.DataConclusao = saved.DataConclusao;
+                local.Observacao = saved.Observacao;
+                local.UpdatedAt = saved.UpdatedAt;
+                var idx = p.Agendamento.Etapas.IndexOf(local);
+                p.Agendamento.Etapas[idx] = local;
+            } 
+            p.Agendamento.NotifyEtapasChanged(); */
+
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿using AgendaApi.Models;
+﻿
 using AgendaShared.DTOs;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System;

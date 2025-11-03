@@ -37,6 +37,7 @@ namespace AgendaApi.Extensions.DtoMapper
             Tipo = entity.Entrega,
             Status = entity.Status,
             Pagamentos = entity.Pagamentos?.Select(p => p.ToDto()).ToList(),
+            Etapas = entity.Etapas?.Select(e => e.ToDto()).ToList(),
 
             Cliente = entity.Cliente == null ? null : new ClienteResumoDto
             {

@@ -1,5 +1,6 @@
-﻿using AgendaApi.Domain.Models;
+﻿
 using AgendaShared.DTOs;
+using AgendaShared.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

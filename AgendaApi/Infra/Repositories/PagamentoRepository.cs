@@ -62,20 +62,19 @@ namespace AgendaApi.Infra.Repositories
         }
         public async Task<List<HistoricoFinanceiroDto>> ListarHistoricoAsync(int agendamentoId)
         {
-            var db = _context.Pagamentos.AsNoTracking();
-
-            var pagamentos = db.Where(p => p.AgendamentoId == agendamentoId).Include(p => p.Agendamento);
-            var historico = pagamentos.Select(p => new HistoricoFinanceiroDto(
-                 p.Id,
-                 p.DataPagamento,
-                 p.Tipo,
-                 p.Observacao ?? $"Pagamento do agendamento {agendamentoId}",
-                 p.Valor,
-                 p.Metodo
-             ));
-            return await historico
-                .OrderBy(h => h.Data)
-                .ToListAsync();
+            return await _context.Pagamentos
+            .AsNoTracking()
+            .Where(p => p.AgendamentoId == agendamentoId)
+            .OrderBy(p => p.DataPagamento)
+            .Select(p => new HistoricoFinanceiroDto(
+                p.Id,
+                p.DataPagamento,
+                p.Tipo,
+                p.Observacao ?? $"Pagamento do agendamento {agendamentoId}",
+                p.Valor,
+                p.Metodo 
+            ))
+            .ToListAsync();
         }
     }
 }

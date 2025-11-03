@@ -1,4 +1,4 @@
-﻿using AgendaApi.Models;
+﻿
 using AgendaWPF.Models;
 using AgendaWPF.Services;
 using AgendaWPF.ViewModels;
@@ -32,6 +32,7 @@ namespace AgendaWPF
             services.AddTransient<IClienteService, ClienteService>();
             services.AddTransient<IServicoService, ServicoService>();
             services.AddTransient<ISemanaService, SemanaService>();
+            services.AddTransient<IPagamentoService, PagamentoService>();
             services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
 
             services.AddSingleton<AgendaViewModel>();
