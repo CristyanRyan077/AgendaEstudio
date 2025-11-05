@@ -54,7 +54,8 @@ builder.Services.AddScoped<IPagamentoRepository, PagamentoRepository>();
 
 builder.Services.AddDbContext<AgendaContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-// 4) CORS (libera seu app MAUI e localhost)
+
+
 const string CorsPolicy = "CorsDev";
 builder.Services.AddCors(opt =>
 {
@@ -64,8 +65,6 @@ builder.Services.AddCors(opt =>
                 "http://localhost",
                 "http://localhost:5173",
                 "http://localhost:5000",
-                "http://10.0.2.2:5173",  // web local via emulador
-                "http://10.0.2.2:5000",  // API via emulador Android
                 "https://192.168.30.121"
 
             )

@@ -26,6 +26,7 @@ namespace AgendaWPF.Services
             int delta = ((int)d.DayOfWeek + 6) % 7; // segunda=0
             return d.Date.AddDays(-delta);
         }
+
         public async Task<IReadOnlyList<DiaAgendamento>> CarregarSemanaAsync(DateTime baseDate)
         {
             var inicio = ObterSegunda(baseDate);

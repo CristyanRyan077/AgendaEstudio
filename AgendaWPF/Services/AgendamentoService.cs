@@ -23,10 +23,10 @@ namespace AgendaWPF.Services
 
     public class AgendamentoService : IAgendamentoService
     {
-        private static readonly HttpClient _http = new HttpClient
-        {
-            BaseAddress = new Uri("http://192.168.30.121:5000/")
-        };
+        private readonly HttpClient _http;
+
+        public AgendamentoService(HttpClient httpClient) => _http = httpClient;
+
         public async Task<List<AgendamentoDto>> ObterAgendamentosAsync()
         {
             try

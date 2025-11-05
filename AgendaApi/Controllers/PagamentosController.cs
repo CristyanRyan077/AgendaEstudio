@@ -20,6 +20,12 @@ namespace AgendaApi.Controllers
             var historico = await _service.ListarHistoricoAsync(id);
             return Ok(historico);
         }
+        [HttpGet("{id:int}/resumo")]
+        public async Task<ActionResult<ResumoAgendamentoDto>> GetResumo(int id)
+        {
+            var resumo = await _service.ObterResumoAgendamentoAsync(id);
+            return Ok(resumo);
+        }
         // GET : api/pagamentos/5
         [HttpGet("{id:int}")]
         public async Task<ActionResult<PagamentoDto>> GetById(int id)
@@ -36,7 +42,7 @@ namespace AgendaApi.Controllers
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
 
             var pagamento = await _service.AdicionarPagamentoAsync(agendamentoId, dto);
-            // ideal: nomeie a rota do GetById para usar o CreatedAtAction corretamente
+            
             return CreatedAtAction(nameof(GetById), new { id = pagamento.Id }, pagamento);
         }
         // PUT: api/pagamentos/5

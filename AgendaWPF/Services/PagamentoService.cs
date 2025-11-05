@@ -13,13 +13,12 @@ namespace AgendaWPF.Services
     public interface IPagamentoService
     {
         Task<List<HistoricoFinanceiroDto>> GetHistoricoAsync(int agendamentoId);
+        Task<ResumoAgendamentoDto> GetResumoAsync(int agendamentoId);
     }
-    public class PagamentoService :IPagamentoService
+    public class PagamentoService : IPagamentoService
     {
-        private static readonly HttpClient _http = new HttpClient
-        {
-            BaseAddress = new Uri("http://192.168.30.121:5000/")
-        };
+        private readonly HttpClient _http;
+        public PagamentoService(HttpClient httpClient) => _http = httpClient;
         public async Task<List<HistoricoFinanceiroDto>> GetHistoricoAsync(int agendamentoId)
         {
             try
@@ -33,8 +32,20 @@ namespace AgendaWPF.Services
                 Debug.WriteLine(ex.ToString());
                 return new List<HistoricoFinanceiroDto>();
             }
-
-
+        }
+        public async Task<ResumoAgendamentoDto> GetResumoAsync(int agendamentoId)
+        {
+            try
+            {
+                var url = $"api/pagamentos/{agendamentoId}/resumo";
+                var resumo = await _http.GetFromJsonAsync<ResumoAgendamentoDto>(url);
+                return resumo ?? new ResumoAgendamentoDto(0, "—", "—", DateTime.MinValue, 0m);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.ToString());
+                return new ResumoAgendamentoDto(0, "—", "—", DateTime.MinValue, 0m);
+            }
         }
     }
 }

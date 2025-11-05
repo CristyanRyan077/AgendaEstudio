@@ -54,34 +54,7 @@ namespace AgendaShared.DTOs
         [NotMapped] public string? MesReserva => Pagamentos?.FirstOrDefault(p => p.Tipo == TipoLancamento.Reserva)?.Observacao;
         [NotMapped] public decimal? ValorReserva => Pagamentos.FirstOrDefault(p => p.Tipo == TipoLancamento.Reserva)?.Valor;
 
-        [NotMapped]
-        public bool EscolhaConcluida => Etapas?.Any(e => e.Etapa == EtapaFotos.Escolha) == true;
-        [NotMapped]
-        public bool TratamentoConcluido => Etapas?.Any(e => e.Etapa == EtapaFotos.Tratamento) == true;
-        [NotMapped]
-        public bool Reveladas => Etapas?.Any(e => e.Etapa == EtapaFotos.Revelar) == true;
-        [NotMapped]
-        public bool Entregue => Etapas?.Any(e => e.Etapa == EtapaFotos.Entrega) == true;
-        [NotMapped] public DateTime? EscolhaEm => Etapas?.FirstOrDefault(e => e.Etapa == EtapaFotos.Escolha)?.DataConclusao;
-        [NotMapped] public DateTime? TratamentoEm => Etapas?.FirstOrDefault(e => e.Etapa == EtapaFotos.Tratamento)?.DataConclusao;
-        [NotMapped] public DateTime? RevelarEm => Etapas?.FirstOrDefault(e => e.Etapa == EtapaFotos.Revelar)?.DataConclusao;
-        [NotMapped] public DateTime? EntregaEm => Etapas?.FirstOrDefault(e => e.Etapa == EtapaFotos.Entrega)?.DataConclusao;
-        [NotMapped] public int PrazoTratarDiasEfetivo => Servico?.PrazoTratarDias > 0 ? Servico.PrazoTratarDias : 3;
-        [NotMapped] public DateTime PrevistoTratamento => BusinessDays.AddBusinessDays(Data.Date, PrazoTratarDiasEfetivo);
-        [NotMapped] public DateTime PrevistoRevelar => BusinessDays.AddBusinessDays(Data.Date, 15);
-        [NotMapped] public DateTime PrevistoEntrega => BusinessDays.AddBusinessDays(Data.Date, 30);
-        [NotMapped] public EtapaStatus StatusEscolha => EscolhaEm.HasValue ? EtapaStatus.Concluido : EtapaStatus.Pendente;
-        [NotMapped] public EtapaStatus StatusTratamento => CalcStatus(TratamentoEm, PrevistoTratamento);
-        [NotMapped] public EtapaStatus StatusRevelar => CalcStatus(RevelarEm, PrevistoRevelar);
-        [NotMapped] public EtapaStatus StatusEntrega => CalcStatus(EntregaEm, PrevistoEntrega);
-        private static EtapaStatus CalcStatus(DateTime? concluidoEm, DateTime previsto)
-        {
-            if (concluidoEm.HasValue) return EtapaStatus.Concluido;
-            var hoje = DateTime.Today;
-            if (hoje > previsto.Date) return EtapaStatus.Atrasado;
-            if (hoje == previsto.Date) return EtapaStatus.Hoje;
-            return EtapaStatus.Pendente;
-        }
+        
         //----------------------------------------------------//
     }
 

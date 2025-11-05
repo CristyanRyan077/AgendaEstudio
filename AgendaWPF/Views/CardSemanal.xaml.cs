@@ -1,8 +1,11 @@
-﻿using AgendaWPF.Models;
+﻿using AgendaShared.DTOs;
+using AgendaWPF.Controles;
+using AgendaWPF.Models;
 using AgendaWPF.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.DirectoryServices.ActiveDirectory;
 using System.Globalization;
 using System.Linq;
@@ -26,6 +29,7 @@ namespace AgendaWPF.Views
     public partial class CardSemanal : UserControl
     {
         private AgendarView? _agendar;
+        private AdicionarPagamento _pagamento;
         private readonly IServiceProvider _sp;
         private readonly AgendaState _state;
         public AgendaViewModel vm { get; }
@@ -68,6 +72,40 @@ namespace AgendaWPF.Views
                 var win = GetAgendar();
                 if (win.DataContext is FormAgendamentoVM formvm)
                     formvm.DataSelecionada = dia.Date;
+            }
+        }
+
+        private void AgendamentoBorder_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            Debug.WriteLine("click!");
+            if (sender is not FrameworkElement fe) return;
+            Debug.WriteLine("F.E check");
+            if (fe.DataContext is not AgendamentoDto ag) { return; }
+            Debug.WriteLine("Datacontext Check");
+            if (DataContext is AgendaViewModel vm &&
+                   vm.AbrirDetalhesCommand.CanExecute(ag))
+            {
+                Debug.WriteLine("can execute check");
+                vm.AbrirDetalhesCommand.Execute(ag);
+                e.Handled = true; // opcional
+            }
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+
+            if (sender is not FrameworkElement fe) return;
+      
+            if (fe.DataContext is not AgendamentoDto ag) { return; }
+
+            if (DataContext is AgendaViewModel vm)
+            {
+        
+                vm.AbrirPagamentosCommand.Execute(ag);
+                e.Handled = true; // opcional
+                var vmPag = ActivatorUtilities.CreateInstance<PagamentosViewModel>(_sp, ag.Id);
+                _pagamento = ActivatorUtilities.CreateInstance<AdicionarPagamento>(_sp, vmPag);
+                _pagamento.Show();
             }
         }
     }

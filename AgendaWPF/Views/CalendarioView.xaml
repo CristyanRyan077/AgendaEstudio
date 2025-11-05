@@ -191,31 +191,6 @@
           Visibility="{Binding DataContext.MostrarDetalhes,
                                ElementName=Calendario,
                                Converter={StaticResource BoolToVisibilityConverter}}">
-            <Grid.Resources>
-                <Style TargetType="hc:TextBox" BasedOn="{StaticResource {x:Type hc:TextBox}}">
-                    <Setter Property="Background" Value="#88D1D3D8" />
-                    <Setter Property="Foreground" Value="Black" />
-                    <Setter Property="FontFamily" Value="Helvetica" />
-                    <Setter Property="FontSize" Value="20" />
-                    <Setter Property="FontWeight" Value="Bold" />
-                    <Setter Property="BorderBrush" Value="Transparent" />
-                    <Setter Property="SelectionTextBrush" Value="Black" />
-                    <Setter Property="Height" Value="60" />
-                    <Setter Property="Margin" Value="5" />
-                </Style>
-
-                <Style TargetType="hc:ComboBox" BasedOn="{StaticResource {x:Type hc:ComboBox}}">
-                    <Setter Property="Background" Value="#88D1D3D8" />
-                    <Setter Property="Foreground" Value="Black" />
-                    <Setter Property="FontFamily" Value="Helvetica" />
-                    <Setter Property="FontSize" Value="20" />
-                    <Setter Property="FontWeight" Value="Bold" />
-                    <Setter Property="BorderBrush" Value="Transparent" />
-                    <Setter Property="SelectionTextBrush" Value="Black" />
-                    <Setter Property="Height" Value="60" />
-                    <Setter Property="Margin" Value="5" />
-                </Style>
-            </Grid.Resources>
 
             <!-- Backdrop escurecido (clica para fechar) -->
             <Border x:Name="Backdrop"
@@ -230,7 +205,7 @@
                 </Border.InputBindings>
             </Border>
 
-            <!-- Slide-over à direita -->
+       
             <Border x:Name="DetailsPane"
             Width="520"
             HorizontalAlignment="Right"
@@ -303,57 +278,65 @@
 
                                 <!-- Tabs simples (detalhes / pagamentos / histórico) -->
                                 <TabControl Grid.Row="3" Grid.ColumnSpan="2" Margin="0,16,0,0">
-                                    <TabItem Header="Detalhes">
-                                        <controles:EtapaFotos/>
-                                    </TabItem>
                                     <TabItem Header="Pagamentos">
-                                        <DataGrid ItemsSource="{Binding Pagamentos}"
-                                              AutoGenerateColumns="False"
-                                              CanUserAddRows="False"
-                                              CanUserDeleteRows="False"
-                                              HeadersVisibility="Column"
-                                              Background="LightGray" BorderBrush="#DDD"
-                                              BorderThickness="1" RowHeight="35"
-                                              ColumnHeaderHeight="40"
-                                              FontSize="14" FontFamily="Segoe UI"
-                                              GridLinesVisibility="None"
-                                               
-                                              SnapsToDevicePixels="True">
-                                            <DataGrid.Effect>
-                                                <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.3"/>
-                                            </DataGrid.Effect>
-                                            <DataGrid.Resources>
-                                                <!-- Cabeçalhos -->
-                                                <Style TargetType="DataGridColumnHeader">
-                                                    <Setter Property="Background" Value="#2D89EF"/>
-                                                    <Setter Property="Foreground" Value="White"/>
-                                                    <Setter Property="FontWeight" Value="SemiBold"/>
-                                                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                                    <Setter Property="Padding" Value="8"/>
-                                                </Style>
-                                                <!-- Linhas -->
-                                                <Style TargetType="DataGridRow">
-                                                    <Setter Property="Cursor" Value="Hand"/>
-                                                    <Setter Property="SnapsToDevicePixels" Value="True"/>
-                                                    <Setter Property="ToolTip" Value="Clique para selecionar esta linha"/>
-                                                    <Style.Triggers>
-                                                        <Trigger Property="IsMouseOver" Value="True">
-                                                            <Setter Property="Background" Value="#E3F2FD"/>
-                                                        </Trigger>
-                                                        <Trigger Property="IsSelected" Value="True">
-                                                            <Setter Property="Background" Value="#BBDEFB"/>
-                                                            <Setter Property="Foreground" Value="Black"/>
-                                                        </Trigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </DataGrid.Resources>
-                                            <DataGrid.Columns>
-                                                <DataGridTextColumn Header="Data" Binding="{Binding DataPagamento, StringFormat={}{0:dd/MM/yyyy}}"/>
-                                                <DataGridTextColumn Header="Valor" Binding="{Binding Valor, StringFormat={}{0:C}}"/>
-                                                <DataGridTextColumn Header="Método" Binding="{Binding Metodo}"/>
-                                                <DataGridTextColumn Header="Observações" Binding="{Binding Observacao}" Width="*"/>
-                                            </DataGrid.Columns>
-                                        </DataGrid>
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="80"/>
+                                            </Grid.RowDefinitions>
+                                            <DataGrid ItemsSource="{Binding Pagamentos}"
+                                                      AutoGenerateColumns="False"
+                                                      CanUserAddRows="False"
+                                                      CanUserDeleteRows="False"
+                                                      HeadersVisibility="Column"
+                                                      Background="LightGray" BorderBrush="#DDD"
+                                                      BorderThickness="1" RowHeight="35"
+                                                      ColumnHeaderHeight="40"
+                                                      FontSize="14" FontFamily="Segoe UI"
+                                                      GridLinesVisibility="None"       
+                                                      SnapsToDevicePixels="True">
+                                                <DataGrid.Effect>
+                                                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.3"/>
+                                                </DataGrid.Effect>
+                                                <DataGrid.Resources>
+                                                    <!-- Cabeçalhos -->
+                                                    <Style TargetType="DataGridColumnHeader">
+                                                        <Setter Property="Background" Value="#2D89EF"/>
+                                                        <Setter Property="Foreground" Value="White"/>
+                                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                                        <Setter Property="Padding" Value="8"/>
+                                                    </Style>
+                                                    <!-- Linhas -->
+                                                    <Style TargetType="DataGridRow">
+                                                        <Setter Property="Cursor" Value="Hand"/>
+                                                        <Setter Property="SnapsToDevicePixels" Value="True"/>
+                                                        <Setter Property="ToolTip" Value="Clique para selecionar esta linha"/>
+                                                        <Style.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter Property="Background" Value="#E3F2FD"/>
+                                                            </Trigger>
+                                                            <Trigger Property="IsSelected" Value="True">
+                                                                <Setter Property="Background" Value="#BBDEFB"/>
+                                                                <Setter Property="Foreground" Value="Black"/>
+                                                            </Trigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </DataGrid.Resources>
+                                                <DataGrid.Columns>
+                                                    <DataGridTextColumn Header="Data" Binding="{Binding DataPagamento, StringFormat={}{0:dd/MM/yyyy}}"/>
+                                                    <DataGridTextColumn Header="Valor" Binding="{Binding Valor, StringFormat={}{0:C}}"/>
+                                                    <DataGridTextColumn Header="Método" Binding="{Binding Metodo}"/>
+                                                    <DataGridTextColumn Header="Observações" Binding="{Binding Observacao}" Width="*"/>
+                                                </DataGrid.Columns>
+                                            </DataGrid>
+                                            <StackPanel Margin="150,0,0,0" Grid.Row="1" Orientation="Horizontal">
+                                                <Button Content="Adicionar" Margin="0,0,10,0" Background="Green"/>
+                                                <Button Content="Apagar" Background="Red"/>
+                                            </StackPanel>
+                                        </Grid>
+                                        
+                                    
                                     </TabItem>
                                     <TabItem Header="Histórico">
                                         <!-- histórico do cliente -->

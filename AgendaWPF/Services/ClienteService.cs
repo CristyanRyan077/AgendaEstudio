@@ -37,10 +37,8 @@ namespace AgendaWPF.Services
         public bool CachePronto { get; private set; }
 
         private readonly HttpClient _http;
-        public ClienteService()
-        {
-            _http = new HttpClient { BaseAddress = new Uri("http://192.168.30.121:5000/") };
-        }
+        public ClienteService(HttpClient http) => _http = http;
+
         public async Task PrecarregarCacheClientesAsync(CancellationToken ct = default)
         {
             CachePronto = false;

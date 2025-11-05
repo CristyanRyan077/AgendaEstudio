@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AgendaWPF.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,21 +13,20 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-namespace AgendaWPF.Views
+namespace AgendaWPF.Controles
 {
     /// <summary>
-    /// Lógica interna para EtapaDialogView.xaml
+    /// Lógica interna para AdicionarPagamento.xaml
     /// </summary>
-    public partial class EtapaDialogView : Window
+    public partial class AdicionarPagamento : Window
     {
-        public EtapaDialogView()
+        public PagamentosViewModel _vm { get; }
+        public AdicionarPagamento(PagamentosViewModel vm)
         {
             InitializeComponent();
-        }
-        private void Salvar_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = true;
-            Close();
+            _vm = vm;
+            DataContext = _vm;
+            Loaded += async (_, __) => await vm.CarregarAsync();
         }
     }
 }
