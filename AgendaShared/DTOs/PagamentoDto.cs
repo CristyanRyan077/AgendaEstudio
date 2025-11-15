@@ -38,5 +38,6 @@ namespace AgendaShared.DTOs
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
     public record ResumoAgendamentoDto(int ClienteId, string ClienteNome, string ServicoNome, DateTime Data, decimal Valor);
-    public record HistoricoFinanceiroDto(int Id, DateTime Data, TipoLancamento Tipo, string Descricao, decimal Valor, MetodoPagamento? Metodo);
+    public record HistoricoFinanceiroDto(int Id, DateTime Data, string Tipo, string Descricao, decimal Valor, MetodoPagamento? Metodo);
+   
 }

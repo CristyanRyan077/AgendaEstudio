@@ -22,14 +22,19 @@ namespace AgendaWPF.ViewModels
     public partial class CalendarioViewModel : ObservableObject
     {
         private readonly IAgendamentoService _agendamentoService;
+        private readonly IClienteService _clienteService;
         private readonly IPagamentoService _pagamentoservice;
         private readonly IMessenger _messenger;
+        private readonly IAcoesService _acoes;
         private CancellationTokenSource? _loadCts;
         [ObservableProperty] private AgendamentoDto? agendamentoSelecionado;
         [ObservableProperty] private DateTime dataSelecionada = DateTime.Today;
         [ObservableProperty] private DateTime mesAtual = DateTime.Today;
         [ObservableProperty] private int agendamentoId;
         [ObservableProperty] private ObservableCollection<HistoricoFinanceiroDto> historico = new();
+        [ObservableProperty] private PagamentosViewModel? pagamentosVM;
+        [ObservableProperty] private object? pagamentosView;
+        [ObservableProperty] private bool mostrarPagamentos;
         public IRelayCommand<SetEtapaParam> AbrirEtapaDialogCommand { get; }
         public IAsyncRelayCommand<(AgendamentoDto ag, DateTime novaData)> MoverAgendamentoAsyncCommand { get; }
         [ObservableProperty] private bool mostrarDetalhes;
@@ -38,11 +43,15 @@ namespace AgendaWPF.ViewModels
         public CalendarioViewModel(
             IPagamentoService pagamentoservice,
             IAgendamentoService agendamentoService,
-            IMessenger messenger)
+            IMessenger messenger,
+            IAcoesService acoes,
+            IClienteService clienteService)
         {
             _agendamentoService = agendamentoService;
             _pagamentoservice = pagamentoservice;
             _messenger = messenger;
+            _acoes = acoes;
+            _clienteService = clienteService;
             MesAtual = DateTime.Today;
             MoverAgendamentoAsyncCommand = new AsyncRelayCommand<(AgendamentoDto ag, DateTime novaData)>(ReagendarAsync);
 
@@ -50,6 +59,26 @@ namespace AgendaWPF.ViewModels
             {
                 _ = ReloadMonthAsync();
             });
+            messenger.Register<PagamentoCriadoMessage>(this, async (r, m) =>
+            {
+                var agendamentoAtualizado = await _agendamentoService.GetByIdAsync(m.AgendamentoId);
+                if (agendamentoAtualizado != null)
+                {
+                    AgendamentoSelecionado = agendamentoAtualizado;
+                    await ReloadMonthAsync();
+                }
+            });
+            messenger.Register<ProdutoAdicionadoMessage>(this, async (r, m) =>
+            {
+                var agendamentoAtualizado = await _agendamentoService.GetByIdAsync(m.AgendamentoId);
+                if (agendamentoAtualizado != null)
+                {
+
+                    AgendamentoSelecionado = agendamentoAtualizado;
+                    await ReloadMonthAsync();
+                }
+            });
+
         }
         private bool HorarioOcupado(DateTime dia, TimeSpan? horario, int agendamentoIdIgnorar = 0)
         {
@@ -271,9 +300,12 @@ namespace AgendaWPF.ViewModels
 
         }
         [RelayCommand]
-        private void AbrirDetalhes(AgendamentoDto ag)
+        private async Task AbrirDetalhes(AgendamentoDto ag)
         {
             AgendamentoSelecionado = ag;
+            /*var historicoDtos = await _clienteService.GetHistoricoAsync(ag.ClienteId);
+            foreach (var dto in historicoDtos.OrderByDescending(a => a.Data).ThenBy(a => a.Horario))
+                AgendamentoSelecionado.h */
             Debug.WriteLine($"[ABRIR DETALHES] Agendamento Selecionado = {AgendamentoSelecionado.Id}");
             MostrarDetalhes = true;
         }
@@ -282,6 +314,7 @@ namespace AgendaWPF.ViewModels
         {
             MostrarDetalhes = false;
             AgendamentoSelecionado = null;
+            
         }
         partial void OnMesAtualChanged(DateTime value) => _ = ReloadMonthAsync();
         private readonly List<TimeSpan> _horariosFixos = new()
@@ -296,6 +329,26 @@ namespace AgendaWPF.ViewModels
             TimeSpan.Parse("18:00"),
             TimeSpan.Parse("19:00")
         };
-     
+        [RelayCommand]
+        public async Task AbrirPagamentosAsync(AgendamentoDto ag)
+        {
+            Debug.WriteLine("Abrir pagamentos chamado");
+            if (ag is null) return;
+
+
+
+            PagamentosVM = await _acoes.CriarPagamentosViewModelAsync(ag.Id);
+            MostrarPagamentos = true;
+
+
+
+        }
+        [RelayCommand]
+        public void FecharPagamentos()
+        {
+            MostrarPagamentos = false;
+            PagamentosView = null;
+        }
+
     }
 }

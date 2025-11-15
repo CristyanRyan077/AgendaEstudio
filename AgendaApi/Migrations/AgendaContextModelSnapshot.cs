@@ -22,7 +22,7 @@ namespace AgendaApi.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("AgendaApi.Domain.Models.AgendamentoEtapa", b =>
+            modelBuilder.Entity("AgendaApi.Domain.Models.Lembrete", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -30,23 +30,41 @@ namespace AgendaApi.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AgendamentoId")
+                    b.Property<int?>("AgendamentoId")
                         .HasColumnType("int");
+
+                    b.Property<int?>("ClienteId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ConcluidoEm")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("Etapa")
+                    b.Property<DateTime>("DataAlvo")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Descricao")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("LembreteTipo")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
+                    b.Property<string>("Titulo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AgendamentoId");
+                    b.HasIndex(new[] { "ClienteId" }, "IX_Lembretes_ClienteId");
 
-                    b.ToTable("AgendamentoEtapas");
+                    b.ToTable("Lembretes");
                 });
 
             modelBuilder.Entity("AgendaApi.Models.Agendamento", b =>
@@ -69,11 +87,15 @@ namespace AgendaApi.Migrations
                     b.Property<int>("Entrega")
                         .HasColumnType("int");
 
-                    b.Property<TimeSpan>("Horario")
+                    b.Property<TimeSpan?>("Horario")
                         .HasColumnType("time");
 
                     b.Property<int?>("Mesversario")
                         .HasColumnType("int");
+
+                    b.Property<string>("Observacao")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<int>("PacoteId")
                         .HasColumnType("int");
@@ -342,6 +364,33 @@ namespace AgendaApi.Migrations
                     b.ToTable("Servicos");
                 });
 
+            modelBuilder.Entity("AgendaShared.Enums.AgendamentoEtapa", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AgendamentoId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Etapa")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AgendamentoId");
+
+                    b.ToTable("AgendamentoEtapas");
+                });
+
             modelBuilder.Entity("AgendamentoPacote", b =>
                 {
                     b.Property<int>("AgendamentosId")
@@ -370,17 +419,6 @@ namespace AgendaApi.Migrations
                     b.HasIndex("ServicosId");
 
                     b.ToTable("AgendamentoServico");
-                });
-
-            modelBuilder.Entity("AgendaApi.Domain.Models.AgendamentoEtapa", b =>
-                {
-                    b.HasOne("AgendaApi.Models.Agendamento", "Agendamento")
-                        .WithMany("Etapas")
-                        .HasForeignKey("AgendamentoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Agendamento");
                 });
 
             modelBuilder.Entity("AgendaApi.Models.Agendamento", b =>
@@ -478,6 +516,17 @@ namespace AgendaApi.Migrations
                     b.Navigation("Agendamento");
 
                     b.Navigation("AgendamentoProduto");
+                });
+
+            modelBuilder.Entity("AgendaShared.Enums.AgendamentoEtapa", b =>
+                {
+                    b.HasOne("AgendaApi.Models.Agendamento", "Agendamento")
+                        .WithMany("Etapas")
+                        .HasForeignKey("AgendamentoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Agendamento");
                 });
 
             modelBuilder.Entity("AgendamentoPacote", b =>

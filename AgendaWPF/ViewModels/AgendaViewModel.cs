@@ -25,22 +25,51 @@ namespace AgendaWPF.ViewModels
     public partial class AgendaViewModel : ObservableObject
     {
         [ObservableProperty] private PagamentosViewModel? pagamentosVM;
+        public event EventHandler<AgendamentoVM>? RequestBringIntoView;
+        private AgendamentoVM? _currentHighlightedAgendamento;
         public ObservableCollection<DiaAgendamento> DiasSemana { get; set; } = new();
         private readonly IAcoesService _acoes;
         private readonly IAgendamentoService _agendamentoService;
         private readonly IClienteService _clienteService;
         private readonly IMessenger _messenger;
         private readonly ISemanaService _semanaService;
-        [ObservableProperty] private AgendamentoDto agendamentoSelecionado;
+
+        [ObservableProperty] private AgendamentoVM agendamentoSelecionado;
         [ObservableProperty] private bool mostrarDetalhes;
         [ObservableProperty] private object? pagamentosView;
         [ObservableProperty] private bool mostrarPagamentos;
+        [ObservableProperty] private object? editarview;
+        [ObservableProperty] private bool mostrarEditar;
         public IEnumerable<IdadeUnidade> IdadesUnidadeDisponiveis => Enum.GetValues(typeof(IdadeUnidade)).Cast<IdadeUnidade>();
         public IEnumerable<Genero> GenerosLista => Enum.GetValues(typeof(Genero)).Cast<Genero>();
         public IEnumerable<TipoEntrega> TiposEntrega => Enum.GetValues(typeof(TipoEntrega)).Cast<TipoEntrega>();
         [ObservableProperty] private TipoEntrega tipoSelecionado = TipoEntrega.Foto;
 
         [ObservableProperty] private ObservableCollection<ClienteDto> listaClientes = new();
+
+        // === FIND (Ctrl+F) ===
+        [ObservableProperty] private bool findBarVisivel;
+
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(FindLimparCommand))]
+        private string? findTermo;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(FindIndiceLabel))] // Notifica a Label quando o índice muda
+        private int findIndice;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(FindIndiceLabel))]  // Notifica a Label
+        [NotifyPropertyChangedFor(nameof(FindTemResultados))] // Notifica o bool
+        [NotifyCanExecuteChangedFor(nameof(FindProximoCommand))] // Habilita/Desabilita o botão
+        [NotifyCanExecuteChangedFor(nameof(FindAnteriorCommand))] // Habilita/Desabilita o botão
+        private int findTotal;
+        [ObservableProperty] private int? findAgendamentoIdAtual;      // para destacar o item atual
+        private List<AgendamentoVM> _findHits = new();
+        [ObservableProperty] private DateTime? dataFiltroSelecionada;
+        public string FindIndiceLabel => FindTotal == 0 ? "0/0" : $"{FindIndice + 1}/{FindTotal}";
+        public bool FindTemResultados => FindTotal > 0;
+
 
 
         public AgendaViewModel(IMessenger messenger, IAgendamentoService agendamentoService, IClienteService clienteService, ISemanaService semanaService, IAcoesService acoes)
@@ -55,11 +84,29 @@ namespace AgendaWPF.ViewModels
             {
                 AdicionarAgendamentoNaSemana(msg.Agendamento);
             });
-            messenger.Register<PagamentoCriadoMessage>(this, (r, m) =>
+            messenger.Register<PagamentoCriadoMessage>(this, async (r, m) =>
             {
-                _ = CarregarSemanaAtualAsync();
-                OnPropertyChanged(nameof(AgendamentoSelecionado));
-
+                var agendamentoAtualizadoDto = await _agendamentoService.GetByIdAsync(m.AgendamentoId);
+                if (agendamentoAtualizadoDto != null)
+                {
+                    var novoAgendamentoVM = new AgendamentoVM(agendamentoAtualizadoDto);
+                    AgendamentoSelecionado = novoAgendamentoVM;
+                    await CarregarSemanaAtualAsync();
+                }
+            });
+            messenger.Register<ProdutoAdicionadoMessage>(this, async (r, m) =>
+            {
+                var agendamentoAtualizadoDto = await _agendamentoService.GetByIdAsync(m.AgendamentoId);
+                if (agendamentoAtualizadoDto != null)
+                {
+                    var novoAgendamentoVM = new AgendamentoVM(agendamentoAtualizadoDto);
+                    AgendamentoSelecionado = novoAgendamentoVM;
+                    await CarregarSemanaAtualAsync();
+                }
+            });
+            messenger.Register<FocusAgendamentoMessage>(this, async (r, msg) =>
+            {
+                await HandleFocusRequestAsync(msg);
             });
 
         }
@@ -78,27 +125,37 @@ namespace AgendaWPF.ViewModels
             var fim = inicio.AddDays(6);
             var ags = await _agendamentoService.ObterAgendamentosPorPeriodo(inicio, fim);
 
+            var agsPorDia = ags.GroupBy(a => a.Data.Date)
+                          .ToDictionary(g => g.Key,
+                                        g => g.OrderBy(a => a.Horario));
             foreach (var dia in DiasSemana)
             {
-                dia.Agendamentos.Clear();
-                foreach (var ag in ags.Where(a => a.Data.Date == dia.Data.Date)
-                                      .OrderBy(a => a.Horario))
-                    dia.Agendamentos.Add(ag);
+                List<AgendamentoVM> vmsDoDia;
+                if (agsPorDia.TryGetValue(dia.Data.Date, out var dtosDoDia))
+                {
+                    // Se sim, "traduza" a lista de DTOs para VMs
+                    vmsDoDia = dtosDoDia.Select(dto => new AgendamentoVM(dto)).ToList();
+                }
+                else
+                {
+                    // Se não, crie uma lista vazia
+                    vmsDoDia = new List<AgendamentoVM>();
+                }
+                dia.Agendamentos = new ObservableCollection<AgendamentoVM>(vmsDoDia);
             }
         }
         private void PreencherEsqueletoDaSemana(DateTime referencia)
         {
             var inicio = _semanaService.ObterSegunda(referencia);
-            // Crie os 7 itens uma vez (opção 2) e atualize in-place:
+            
             for (int i = 0; i < 7; i++)
             {
                 var d = inicio.AddDays(i);
-                DiasSemana[i].Data = d;   // dispara Nome/DataFormatada no DiaAgendamento
-                DiasSemana[i].Agendamentos.Clear(); // temporariamente vazios
+                DiasSemana[i].Data = d;   
             }
         }
 
-        private void AdicionarAgendamentoNaSemana(AgendamentoDto criado)
+        private void AdicionarAgendamentoNaSemana(AgendamentoVM criado)
         {
             var inicio = _semanaService.ObterSegunda(DataSelecionada);
             var fim = inicio.AddDays(6);
@@ -116,6 +173,143 @@ namespace AgendaWPF.ViewModels
             while (i < dia.Agendamentos.Count && dia.Agendamentos[i].Horario <= criado.Horario) i++;
             dia.Agendamentos.Insert(i, criado);
         }
+        partial void OnFindTermoChanged(string? value)
+        {
+            _ = RebuildFindHitsAsync();
+        }
+        private async Task RebuildFindHitsAsync()
+        {
+            var termo = FindTermo?.Trim();
+            _findHits.Clear();
+            FindAgendamentoIdAtual = null;
+
+            if (string.IsNullOrWhiteSpace(termo))
+            {
+                FindTotal = 0;
+                FindIndice = 0;
+                return;
+            }
+
+            // 1) chamada da api para buscar os agendamentos
+            List<AgendamentoDto> dtosEncontrados;
+            try { dtosEncontrados = await _agendamentoService.SearchAgendamentoAsync(termo); }
+
+            catch (Exception ex)
+            { 
+                Debug.WriteLine($"Erro ao buscar agendamentos: {ex.Message}");
+                dtosEncontrados = new List<AgendamentoDto>();
+            }
+            var todosVMsAtuais = DiasSemana.SelectMany(d => d.Agendamentos).ToList();
+ 
+
+            // 2. Converter os DTOs em VMs
+            _findHits = dtosEncontrados
+                .Select(dto => new AgendamentoVM(dto)) // Converte DTO para VM
+                .OrderBy(a => a.Data)
+                .ThenBy(a => a.Horario)
+                .ToList();
+
+            // 3. O resto da lógica é o mesmo
+            FindTotal = _findHits.Count;
+
+            if (FindTotal > 0)
+            {
+                FindIndice = 0;
+                var primeiro = _findHits[0];
+                FindAgendamentoIdAtual = primeiro.Id;
+
+                UpdateHighlight(primeiro);
+                _messenger.Send(new FocusAgendamentoMessage(primeiro.Id, primeiro.Data));
+            }
+            else
+            {
+                FindIndice = 0;
+            }
+        }
+
+
+
+        private void IrParaResultado(int novoIndice)
+        {
+            if (FindTotal == 0) return;
+
+
+            FindIndice = (novoIndice + FindTotal) % FindTotal;
+
+            var alvo = _findHits[FindIndice];
+            FindAgendamentoIdAtual = alvo.Id;
+            UpdateHighlight(alvo);
+            _messenger.Send(new FocusAgendamentoMessage(alvo.Id, alvo.Data));
+        }
+        [RelayCommand(CanExecute = nameof(FindTemResultados))]
+        private void FindProximo()
+        {
+            IrParaResultado(FindIndice + 1);
+        }
+
+        [RelayCommand(CanExecute = nameof(FindTemResultados))]
+        private void FindAnterior()
+        {
+            IrParaResultado(FindIndice - 1);
+        }
+
+        [RelayCommand]
+        private void FindLimpar()
+        {
+            FindTermo = null;
+            if (_currentHighlightedAgendamento != null)
+            {
+                _currentHighlightedAgendamento.IsCurrentFindHit = false;
+                _currentHighlightedAgendamento = null;
+            }
+        }
+        private void UpdateHighlight(AgendamentoVM novoAlvo)
+        {
+            // 1. Limpa o destaque anterior (se houver)
+            if (_currentHighlightedAgendamento != null)
+            {
+                _currentHighlightedAgendamento.IsCurrentFindHit = false;
+                
+                _currentHighlightedAgendamento = null;
+            }
+
+            // 2. Define o novo destaque
+            novoAlvo.IsCurrentFindHit = true;
+            _currentHighlightedAgendamento = novoAlvo;
+        }
+        private async Task HandleFocusRequestAsync(FocusAgendamentoMessage msg)
+        {
+            // 1. Descobrir o início e fim da semana atual
+            // (Assumindo que _semanaService existe e DataSelecionada é a referência)
+            var inicioSemana = _semanaService.ObterSegunda(DataSelecionada);
+            var fimSemana = inicioSemana.AddDays(6);
+
+            // 2. Se a data do agendamento estiver fora da semana, carrega a nova semana
+            if (msg.Data.Date < inicioSemana.Date || msg.Data.Date > fimSemana.Date)
+            {
+                // Define a nova data E espera o carregamento terminar
+                DataSelecionada = msg.Data;
+                await CarregarSemanaAtualAsync();
+            }
+
+            // 3. Agora que a semana correta está carregada, encontra o AgendamentoVM
+            var agendamentoVM = DiasSemana
+                .SelectMany(dia => dia.Agendamentos)
+                .FirstOrDefault(a => a.Id == msg.AgendamentoId);
+
+            if (agendamentoVM != null)
+            {
+                UpdateHighlight(agendamentoVM);
+                // 4. Aguarda a UI ter a chance de criar os containers (ex: se a semana mudou)
+                await System.Windows.Threading.Dispatcher
+                .Yield(System.Windows.Threading.DispatcherPriority.Background);
+
+                // 5. Dispara o evento para o code-behind fazer a mágica da UI
+                RequestBringIntoView?.Invoke(this, agendamentoVM);
+            }
+        }
+        [RelayCommand]
+        private void FindToggle() => FindBarVisivel = !FindBarVisivel;
         [RelayCommand]
         private void SemanaAnterior() => DataSelecionada = DataSelecionada.AddDays(-7);
 
@@ -167,11 +361,15 @@ namespace AgendaWPF.ViewModels
             if (value is null) return;
             IrParaSemana(value.Value);
         }
-                [ObservableProperty] private DateTime? dataFiltroSelecionada;
+                
         [RelayCommand]
-        private void AbrirDetalhes(AgendamentoDto ag)
+        private async Task AbrirDetalhes(AgendamentoVM ag)
         {
             AgendamentoSelecionado = ag;
+            var historicoDtos = await _clienteService.GetHistoricoAsync(ag.ClienteId);
+            foreach (var dto in historicoDtos.OrderByDescending(a => a.Data).ThenBy(a => a.Horario))
+                AgendamentoSelecionado.HistoricoAgendamentos.Add(dto);
+           
             Debug.WriteLine($"[ABRIR DETALHES] Agendamento Selecionado = {AgendamentoSelecionado.Id}");
             MostrarDetalhes = true;
         }
@@ -182,28 +380,25 @@ namespace AgendaWPF.ViewModels
             AgendamentoSelecionado = null;
         }
         [RelayCommand]
-        public async Task AbrirPagamentosAsync(AgendamentoDto ag)
+        public async Task AbrirPagamentosAsync(AgendamentoVM ag)
         {
             Debug.WriteLine("Abrir pagamentos chamado");
             if (ag is null) return;
-
-
-
             PagamentosVM = await _acoes.CriarPagamentosViewModelAsync(ag.Id);
             MostrarPagamentos = true;
-
-           
-           // OnPropertyChanged(nameof(TemHistorico));
-           
-            //var view = new HistoricoUsuario { DataContext = this };
-            //TelaHistoricoCliente = view;
-            //MostrarHistoricoCliente = true;
         }
         [RelayCommand]
         public void FecharPagamentos()
         {
             MostrarPagamentos = false;
             PagamentosView = null;
+        }
+        [RelayCommand]
+        public void AbrirEditarAsync(AgendamentoVM ag)
+        {
+            if (ag is null) return;
+            AgendamentoSelecionado = ag;
+            MostrarEditar = true;
         }
     }
 

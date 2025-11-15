@@ -8,10 +8,33 @@ using AgendaApi.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
+using Microsoft.Extensions.Hosting.WindowsServices;
 using Microsoft.AspNetCore.ResponseCompression;
 using AgendaApi.Extensions.MiddleWares;
 
-var builder = WebApplication.CreateBuilder(args);
+
+var isService = WindowsServiceHelpers.IsWindowsService();
+
+var options = new WebApplicationOptions
+{
+    Args = args,
+    // Só força o ContentRoot quando for serviço; no VS deixa o padrão (pasta do projeto)
+    ContentRootPath = isService ? AppContext.BaseDirectory : default
+};
+var builder = WebApplication.CreateBuilder(options);
+
+
+if (isService)
+{
+    builder.Host.UseWindowsService();
+    builder.Logging.AddEventLog(); // logs no Event Viewer quando serviço
+}
+
+
+builder.Logging.AddConsole();
+
+// Leia a connection string AGORA (depois de configurar as fontes)
+
 
 
 builder.Services.AddOpenApi();
@@ -44,6 +67,8 @@ builder.Services.AddScoped<ICriancaService, CriancaService>();
 builder.Services.AddScoped<IServicoService, ServicoService>();
 builder.Services.AddScoped<IPacoteService, PacoteService>();
 builder.Services.AddScoped<IPagamentoService, PagamentoService>();
+builder.Services.AddScoped<IProdutoService, ProdutoService>();
+builder.Services.AddScoped<IFinanceiroService, FinanceiroService>();
 
 builder.Services.AddScoped<IAgendamentoRepository, AgendamentoRepository>();
 builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
@@ -62,10 +87,9 @@ builder.Services.AddCors(opt =>
     opt.AddPolicy(CorsPolicy, policy =>
         policy
             .WithOrigins(
-                "http://localhost",
                 "http://localhost:5173",
-                "http://localhost:5000",
-                "https://192.168.30.121"
+                "http://localhost:5005",
+                "http://192.168.30.121:5010"
 
             )
             .SetIsOriginAllowedToAllowWildcardSubdomains()

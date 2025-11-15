@@ -46,7 +46,8 @@ namespace AgendaWPF.Services
                     Data = dia,
                     Nome = CultureInfo.GetCultureInfo("pt-BR").TextInfo
                            .ToTitleCase(dia.ToString("dddd", new CultureInfo("pt-BR")).Replace("-feira", "").Trim()),
-                    Agendamentos = new ObservableCollection<AgendamentoDto>(listaDia)
+                    Agendamentos = new ObservableCollection<AgendamentoVM>(
+                    listaDia.Select(dto => new AgendamentoVM(dto)))
                 });
             }
             return dias;
@@ -59,7 +60,7 @@ namespace AgendaWPF.Services
                 Data = data.Date,
                 Nome = CultureInfo.GetCultureInfo("pt-BR").TextInfo
                        .ToTitleCase(data.ToString("dddd", new CultureInfo("pt-BR")).Replace("-feira", "").Trim()),
-                Agendamentos = new ObservableCollection<AgendamentoDto>()
+                Agendamentos = new ObservableCollection<AgendamentoVM>()
             };
         }
     }

@@ -22,6 +22,8 @@ public partial class AgendamentoProduto
 
     public DateTime CreatedAt { get; set; }
 
+    public decimal ValorTotal => Quantidade * ValorUnitario;
+
     public ICollection<Pagamento> Pagamentos { get; set; } = new List<Pagamento>();
     //----------------------------------------------------//
 }

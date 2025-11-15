@@ -10,7 +10,7 @@
         <DockPanel>
             <!-- Barra de navegação -->
             <Border DockPanel.Dock="Top" Background="#2D2D2D">
-                <UniformGrid Rows="1" Columns="5" HorizontalAlignment="Stretch">
+                <UniformGrid Rows="1" Columns="4" HorizontalAlignment="Stretch">
 
                     <!-- Botão Agenda -->
                     <Button  Style="{StaticResource NavButtonStyle}" Command="{Binding IrParaSemanalCommand}">
@@ -37,20 +37,13 @@
                     </Button>
 
                     <!-- Botão Financeiro -->
-                    <Button Style="{StaticResource NavButtonStyle}">
+                    <Button Style="{StaticResource NavButtonStyle}" Command="{Binding IrParaFinanceiroCommand}" >
                         <StackPanel>
                             <materialDesign:PackIcon Kind="AccountCash" Height="28" HorizontalAlignment="Center"/>
                             <TextBlock Text="Financeiro"/>
                         </StackPanel>
                     </Button>
 
-                    <!-- Botão Entrega -->
-                    <Button Style="{StaticResource NavButtonStyle}">
-                        <StackPanel>
-                            <materialDesign:PackIcon Kind="PhotoCamera" Height="28" HorizontalAlignment="Center"/>
-                            <TextBlock Text="Entrega"/>
-                        </StackPanel>
-                    </Button>
                 </UniformGrid>
             </Border>
             <ContentControl Content="{Binding ViewAtual}"/>

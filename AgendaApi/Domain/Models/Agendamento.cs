@@ -23,11 +23,12 @@ public partial class Agendamento
     //----------------------------------------------------//
     //            Colunas
     //----------------------------------------------------//
-    public TimeSpan Horario { get; set; }
+    public TimeSpan? Horario { get; set; }
     [MaxLength(100)] public string? Tema { get; set; }
     public decimal Valor { get; set; }
     public DateTime Data { get; set; }
     public int? Mesversario { get; set; }
+    [MaxLength(255)] public string? Observacao { get; set; }
     //----------------------------------------------------//
     //             Enums
     //----------------------------------------------------//
@@ -54,4 +55,7 @@ public partial class Agendamento
 
     public Servico Servico { get; set; } = null!;
     //----------------------------------------------------//
+
+    [NotMapped]
+    public bool EstaPago => (Pagamentos?.Sum(p => p.Valor) ?? 0m) >= Valor;
 }

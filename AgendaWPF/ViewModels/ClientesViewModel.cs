@@ -11,6 +11,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Printing;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -34,11 +35,17 @@ namespace AgendaWPF.ViewModels
         public bool IsEdit => Mode == FormMode.Edit;
         public bool TemHistorico => Historico?.Any() == true;
 
-        [ObservableProperty] private int paginaAtual = 1;
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(ProximaPaginaCommand))]
+        [NotifyCanExecuteChangedFor(nameof(PaginaAnteriorCommand))]
+        private int paginaAtual = 1;
 
-        [ObservableProperty] private int totalPaginas = 1;
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(ProximaPaginaCommand))]
+        [NotifyCanExecuteChangedFor(nameof(PaginaAnteriorCommand))]
+        private int totalPaginas = 1;
 
-        [ObservableProperty] private string? filtroNome;
+        [ObservableProperty] private string? pesquisaText;
 
 
         //Enums
@@ -48,17 +55,26 @@ namespace AgendaWPF.ViewModels
         [ObservableProperty] private TipoEntrega tipoSelecionado = TipoEntrega.Foto;
         private CancellationTokenSource? _detectCts;
         public IAsyncRelayCommand CarregarClientesCommand { get; }
-        public IRelayCommand ProximaPaginaCommand { get; }
-        public IRelayCommand PaginaAnteriorCommand { get; }
+        public IAsyncRelayCommand ProximaPaginaCommand { get; }
+        public IAsyncRelayCommand PaginaAnteriorCommand { get; }
 
-        private const int PageSize = 10;
+        [ObservableProperty] private int pageSize = 10;
+
+        [ObservableProperty] private List<int> opcoesTamanhoPagina = new() { 10, 20, 50 };
         public ClientesViewModel(IClienteService clienteService)
         {
             _clienteService = clienteService;
             CarregarClientesCommand = new AsyncRelayCommand(CarregarClientesAsync);
-            ProximaPaginaCommand = new RelayCommand(() => MudarPagina(1), () => PaginaAtual < TotalPaginas);
-            PaginaAnteriorCommand = new RelayCommand(() => MudarPagina(-1), () => PaginaAtual > 1);
-            
+            ProximaPaginaCommand = new AsyncRelayCommand(
+              () => MudarPaginaAsync(1),
+              () => PaginaAtual < TotalPaginas
+            );
+
+            PaginaAnteriorCommand = new AsyncRelayCommand(
+                () => MudarPaginaAsync(-1),
+                () => PaginaAtual > 1
+            );
+
         }
         public async Task InitAsync()
         {
@@ -68,9 +84,15 @@ namespace AgendaWPF.ViewModels
         }
         private async Task CarregarClientesAsync()
         {
-            var resultado = await _clienteService.GetClientesPaginadoAsync(PaginaAtual, PageSize, FiltroNome);
+                
+            var resultado = await _clienteService.GetClientesPaginadoAsync(PaginaAtual, PageSize, PesquisaText);
 
-            Clientes = new ObservableCollection<ClienteDto>(resultado.Items);
+            Clientes.Clear();
+            foreach (var item in resultado.Items)
+            {
+                Clientes.Add(item);
+            }
+            Debug.WriteLine($"clientes encontrados {resultado.Items.Count()}");
             TotalPaginas = resultado.TotalPages;
         }
         public void New()
@@ -81,6 +103,42 @@ namespace AgendaWPF.ViewModels
             {
                 Crianca = new CriancaFormModel() 
             };
+        }
+        partial void OnPageSizeChanged(int value)
+        {
+            _ = CarregarClientesAsync();
+        }
+        private CancellationTokenSource _debounceCts = new();
+        partial void OnPesquisaTextChanged(string? value)
+        {
+            _debounceCts.Cancel();
+            _debounceCts = new CancellationTokenSource();
+            var token = _debounceCts.Token;
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    // 3. Espera pelo tempo de debounce
+                    await Task.Delay(300, token);
+
+                    // 4. Verifica se o token foi cancelado (se o usuário digitou mais rápido)
+                    if (token.IsCancellationRequested) return;
+
+                    await Application.Current.Dispatcher.Invoke(async () => await CarregarClientesAsync());
+                    PaginaAtual = 1;
+
+                }
+                catch (TaskCanceledException)
+                {
+                    // Exceção esperada e ignorada quando o cancelamento ocorre
+                }
+                catch (Exception ex)
+                {
+                    // Tratar outros erros
+                    Debug.WriteLine($"Erro no debounce: {ex.Message}");
+                }
+            });
         }
 
         [RelayCommand]
@@ -183,19 +241,22 @@ namespace AgendaWPF.ViewModels
             if (ClienteSelecionado == null) return;
 
             var criList = await _clienteService.GetByClienteIdAsync(ClienteSelecionado.Id);
-            Debug.WriteLine($"criancas encontradas {criList.Count()}");
-            var cri = criList[0];
-            if (cri is null && (ClienteSelecionado.Criancas?.Count ?? 0) == 1)
-                cri = ClienteSelecionado.Criancas![0];
-
-            if (cri != null)
+            if (criList.Count() >= 1)
             {
-                
-                if (System.Windows.MessageBox.Show($"Excluir crianca: {cri.Nome}?",
-                    "Confirmar", MessageBoxButton.YesNo) != MessageBoxResult.Yes) return;
+                Debug.WriteLine($"criancas encontradas {criList.Count()}");
+                var cri = criList[0];
+                if (cri is null && (ClienteSelecionado.Criancas?.Count ?? 0) == 1)
+                    cri = ClienteSelecionado.Criancas![0];
 
-                await _clienteService.DeleteCriancaAsync(cri.Id);
-                return;
+                if (cri != null)
+                {
+
+                    if (System.Windows.MessageBox.Show($"Excluir crianca: {cri.Nome}?",
+                        "Confirmar", MessageBoxButton.YesNo) != MessageBoxResult.Yes) return;
+
+                    await _clienteService.DeleteCriancaAsync(cri.Id);
+                    return;
+                }
             }
             
             if (System.Windows.MessageBox.Show($"Excluir cliente: {ClienteSelecionado.Nome}?",
@@ -235,7 +296,7 @@ namespace AgendaWPF.ViewModels
                 await DetectarClientePorCamposDebouncedAsync();
         }
 
-        private async void MudarPagina(int delta)
+        private async Task MudarPaginaAsync(int delta)
         {
             PaginaAtual += delta;
             await CarregarClientesAsync();

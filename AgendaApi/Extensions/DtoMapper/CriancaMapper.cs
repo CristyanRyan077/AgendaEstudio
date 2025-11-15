@@ -28,10 +28,14 @@ namespace AgendaApi.Extensions.DtoMapper
 
         public static void UpdateEntity(this Crianca entity, CriancaUpdateDto dto)
         {
-            entity.Nome = dto.Nome;
-            entity.Genero = dto.Genero;
-            entity.Idade = dto.Idade;
-            entity.IdadeUnidade = dto.IdadeUnidade;
+            if (dto.Nome != null)
+                entity.Nome = dto.Nome;
+            if (dto.Genero.HasValue)
+                entity.Genero = dto.Genero.Value;
+            if (dto.Idade.HasValue)
+                entity.Idade = dto.Idade.Value;
+            if (dto.IdadeUnidade.HasValue)
+                entity.IdadeUnidade = dto.IdadeUnidade.Value;
         }
     }
 }

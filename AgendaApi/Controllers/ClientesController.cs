@@ -66,16 +66,18 @@ namespace AgendaApi.Controllers
             return NoContent();
         }
         [HttpGet("paginado")]
-        public async Task<ActionResult<PagedResult<ClienteResumoDto>>> GetClientes(
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 10,
-        [FromQuery] string? nome = null)
+        public async Task<ActionResult<PagedResult<ClienteResumoDto>>> GetClientes([FromQuery] ClienteQuery q)
         {
-            if (page <= 0 || pageSize <= 0)
+            if (q.Page <= 0 || q.PageSize <= 0)
                 return BadRequest("Parâmetros de paginação inválidos.");
 
-            var result = await _service.ObterPaginadoAsync(page, pageSize,nome);
+            var result = await _service.ObterPaginadoAsync(q.Page, q.PageSize,q.Search, q.mesRef, q.anoRef);
             return Ok(result);
         }
+        /// <summary>
+        /// GET /agendamento/search?term={termo}
+        /// Busca agendamentos por termo (nome, telefone ou #ID).
+        /// </summary>
+
     }
 }

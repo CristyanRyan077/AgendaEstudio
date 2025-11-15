@@ -21,9 +21,11 @@ namespace AgendaWPF.Services
         Task<List<CriancaDto>> GetByClienteIdAsync(int id);
         Task<List<AgendamentoDto>> GetHistoricoAsync(int id);
         Task<ClienteDto> GetByIdAsync(int id);
+        Task<CriancaDto> GetCriancaIdAsync(int id);
         Task<ClienteDto> CreateClienteAsync(ClienteCreateDto clienteCreateDto);
         Task<CriancaDto> CreateCriancaAsync(int clienteId, CriancaCreateDto criancaCreateDto);
         Task<ClienteDto> UpdateClienteAsync(int id, ClienteUpdateDto dto, CancellationToken ct = default);
+        Task<CriancaDto?> UpdateCriancaAsync(int id, CriancaUpdateDto dto, CancellationToken ct = default);
         public ClienteResumoDto? DetectExistingLocal(string? telefone, string? email);
         Task PrecarregarCacheClientesAsync(CancellationToken ct = default);
         Task DeleteAsync(int id);
@@ -89,6 +91,30 @@ namespace AgendaWPF.Services
                 return new ClienteDto();
             }
         }
+        public async Task<CriancaDto?> UpdateCriancaAsync(int id, CriancaUpdateDto dto, CancellationToken ct = default)
+        {
+            var resp = await _http.PatchAsJsonAsync($"api/criancas/{id}", dto, ct);
+
+            if (resp.IsSuccessStatusCode)
+                return await resp.Content.ReadFromJsonAsync<CriancaDto>(cancellationToken: ct);
+            else
+                throw new Exception($"Erro ao atualizar crianca: {resp.StatusCode} - {await resp.Content.ReadAsStringAsync(ct)}");
+            
+        }
+        public async Task<CriancaDto> GetCriancaIdAsync(int id)
+        {
+            try
+            {
+                var cliente = await _http.GetFromJsonAsync<CriancaDto>($"api/criancas/{id}");
+                return cliente ?? new CriancaDto();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.ToString());
+                return new CriancaDto();
+            }
+
+        }
         public async Task<List<ClienteDto>> ObterClientesAsync()
         {
             try
@@ -118,16 +144,10 @@ namespace AgendaWPF.Services
         }
         public async Task<List<AgendamentoDto>> GetHistoricoAsync(int id)
         {
-            try
-            {
-                var agendamentos = await _http.GetFromJsonAsync<List<AgendamentoDto>>($"api/clientes/{id}/agendamentos");
-                return agendamentos ?? new List<AgendamentoDto>();
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex.ToString());
-                return new List<AgendamentoDto>();
-            }
+
+            var agendamentos = await _http.GetFromJsonAsync<List<AgendamentoDto>>($"api/clientes/{id}/agendamentos");
+            return agendamentos ?? new List<AgendamentoDto>();
+            
         }
 
         public async Task<ClienteDto> CreateClienteAsync(ClienteCreateDto clienteCreateDto)
@@ -180,7 +200,7 @@ namespace AgendaWPF.Services
             {
                 var query = $"?page={page}&pageSize={pagesize}";
                 if (!string.IsNullOrWhiteSpace(nome))
-                    query += $"&nome={Uri.EscapeDataString(nome)}";
+                    query += $"&search={Uri.EscapeDataString(nome)}";
 
                 var url = $"api/clientes/paginado{query}";
                 var result = await _http.GetFromJsonAsync<PagedResult<ClienteDto>>(url);

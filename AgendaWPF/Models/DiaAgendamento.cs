@@ -24,6 +24,7 @@ namespace AgendaWPF.Models
  
             Nome = char.ToUpper(n[0], ptBR) + n.Substring(1).Replace("-feira", "").Trim();
         }
-        public ObservableCollection<AgendamentoDto> Agendamentos { get; set; } = new();
+        [ObservableProperty]
+        private ObservableCollection<AgendamentoVM> agendamentos = new();
     }
 }

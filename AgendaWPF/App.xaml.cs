@@ -18,6 +18,19 @@ namespace AgendaWPF
     /// </summary>
     public partial class App : Application
     {
+        public App()
+        {
+            AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+            {
+                MessageBox.Show(e.ExceptionObject.ToString(), "Erro não tratado");
+            };
+
+            DispatcherUnhandledException += (_, e) =>
+            {
+                MessageBox.Show(e.Exception.Message, "Erro");
+                e.Handled = true; // impede fechar
+            };
+        }
 
         public IServiceProvider ServiceProvider { get; private set; }
         protected override void OnStartup(StartupEventArgs e)
@@ -36,6 +49,7 @@ namespace AgendaWPF
             services.AddTransient<ISemanaService, SemanaService>();
             services.AddTransient<IPagamentoService, PagamentoService>();
             services.AddTransient<IAcoesService, AcoesService>();
+            services.AddTransient<IFinanceiroService, FinanceiroService>();
             services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
 
             services.AddSingleton<AgendaViewModel>();
@@ -44,26 +58,29 @@ namespace AgendaWPF
             services.AddSingleton<ClientesViewModel>();
             services.AddSingleton<FormAgendamentoVM>();
             services.AddSingleton<PagamentosViewModel>();
+            services.AddSingleton<FinanceiroViewModel>();
+
 
             services.AddTransient<MainWindow>();
             services.AddTransient<CardSemanal>();
             services.AddTransient<ClientesView>();
             services.AddTransient<CalendarioView>();
             services.AddTransient<AgendarView>();
+            services.AddTransient<FinanceiroView>();
             services.AddTransient<AdicionarPagamento>();
+            services.AddTransient<EditarAgendamento>();
 
             services.AddSingleton<AgendaState>();
 #if DEBUG
-            MessageBox.Show("Build: DEBUG\nBaseUrl: http://localhost:5000/");
-            const string apiBaseUrl = "http://localhost:5000/";
+            const string apiBaseUrl = "http://localhost:5005/";
 #else
-    MessageBox.Show("Build: RELEASE\nBaseUrl: http://http://192.168.30.121/");
-    const string apiBaseUrl = "http://192.168.30.121/"; // prod
+    const string apiBaseUrl = "http://192.168.30.121:5010/"; // prod
 #endif
             services.AddHttpClient<IAgendamentoService, AgendamentoService>(client => { client.BaseAddress = new Uri(apiBaseUrl);});
             services.AddHttpClient<IClienteService, ClienteService>(client => { client.BaseAddress = new Uri(apiBaseUrl);});
             services.AddHttpClient<IPagamentoService, PagamentoService>(client => { client.BaseAddress = new Uri(apiBaseUrl); });
             services.AddHttpClient<IServicoService, ServicoService>(client => { client.BaseAddress = new Uri(apiBaseUrl); });
+            services.AddHttpClient<IFinanceiroService, FinanceiroService>(client => { client.BaseAddress = new Uri(apiBaseUrl); });
 
             ServiceProvider = services.BuildServiceProvider();
             var mainwindow = ServiceProvider.GetRequiredService<MainWindow>();

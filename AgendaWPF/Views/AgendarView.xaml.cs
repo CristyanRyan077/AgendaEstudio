@@ -35,21 +35,7 @@ namespace AgendaWPF.Views
             var vm = DataContext as FormAgendamentoVM;
             if (vm == null) return;
 
-            if (int.TryParse(txtIdBusca.Text.Trim(), out int id))
-            {
-                var cliente = vm.ListaClientes.FirstOrDefault(c => c.Id == id);
-                if (cliente != null)
-                {
-                    vm.ClienteSelecionado = cliente;
-                    txtTelefone.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
-                   // txtcrianca.GetBindingExpression(ComboBox.TextProperty)?.UpdateTarget();
-                   // txtcrianca.GetBindingExpression(ComboBox.SelectedItemProperty)?.UpdateTarget();
-                }
-                else
-                {
-                    MessageBox.Show("Cliente com esse ID não encontrado.");
-                }
-            }
+           
         }
 
 

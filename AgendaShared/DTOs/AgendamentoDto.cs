@@ -15,12 +15,13 @@ namespace AgendaShared.DTOs
         public int ServicoId { get; set; }
         public int PacoteId { get; set; }
         public DateTime Data { get; set; }
-        public TimeSpan Horario { get; set; }
+        public TimeSpan? Horario { get; set; }
         public string? Tema { get; set; }
         public decimal Valor { get; set; }
         public int? Mesversario { get; set; }
         public StatusAgendamento Status { get; set; }
         public TipoEntrega Tipo { get; set; }
+        public string Observacao { get; set; } = string.Empty;
         public List<PagamentoDto>? Pagamentos { get; set; }
         public ClienteResumoDto? Cliente { get; set; }
         public ServicoResumoDto? Servico { get; set; }
@@ -43,8 +44,8 @@ namespace AgendaShared.DTOs
 
                 return Crianca.IdadeUnidade switch
                 {
-                    IdadeUnidade.Ano or IdadeUnidade.Anos => $"{Crianca.Idade} anos",
-                    IdadeUnidade.Mês or IdadeUnidade.Meses => $"{Crianca.Idade} meses",
+                    IdadeUnidade.Ano or IdadeUnidade.Anos => $"{Mesversario} anos",
+                    IdadeUnidade.Mês or IdadeUnidade.Meses => $"{Mesversario} meses",
                     _ => $"Mês {Mesversario}"
                 };
             }
@@ -66,7 +67,8 @@ namespace AgendaShared.DTOs
         public int PacoteId { get; set; }
         public int? Mesversario { get; set; }
         public DateTime Data { get; set; }
-        public TimeSpan Horario { get; set; }
+        public TimeSpan? Horario { get; set; }
+        public string? Observacao { get; set; }
         public StatusAgendamento Status { get; set; }
         public TipoEntrega Tipo { get; set; }
         public string? Tema { get; set; }
@@ -81,8 +83,9 @@ namespace AgendaShared.DTOs
         public DateTime NovaData { get; set; }
 
         [Required]
-        public TimeSpan NovoHorario { get; set; }
+        public TimeSpan? NovoHorario { get; set; }
     }
+
     public class AgendamentoUpdateDto
     {
         public int ClienteId { get; set; }
@@ -97,20 +100,28 @@ namespace AgendaShared.DTOs
     }
     public class ClienteResumoDto
     {
+        public static readonly ClienteResumoDto Empty = new() { Nome = "(sem cliente)" };
         public int Id { get; set; }
         public string Nome { get; set; } = string.Empty;
-        public string Telefone { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
+        public string? Telefone { get; set; }
+        public string? Email { get; set; }
         public string Observacao { get; set; } = string.Empty;
+        public DateTime ProximoAgendamento { get; set; }
+        public DateTime UltimoAgendamento { get; set; }
+        public StatusCliente Status { get; set; }
+
+        public decimal SaldoEmAberto { get; set; }
     }
     public class ServicoResumoDto
     {
+        public static readonly ServicoResumoDto Empty = new() { Nome = "(servico nao encontrado)" };
         public int Id { get; set; }
         public string Nome { get; set; } = string.Empty;
         public int PrazoTratarDias { get; set; } = 3;
     }
     public class PacoteResumoDto
     {
+        public static readonly PacoteResumoDto Empty = new() { Nome = "(pacote nao encontrado)" };
         public int Id { get; set; }
         public string Nome { get; set; } = string.Empty;
         public decimal Valor { get; set; }
@@ -122,5 +133,9 @@ namespace AgendaShared.DTOs
         public int Idade { get; set; }
         public IdadeUnidade IdadeUnidade { get; set; }
         public Genero Genero { get; set; }
+    }
+    public class StatusUpdateDto
+    {
+        public StatusAgendamento Status { get; set; }
     }
 }

@@ -8,11 +8,13 @@ using System.Threading.Tasks;
 namespace AgendaWPF.Models
 {
         public record PagamentoCriadoMessage(int AgendamentoId, PagamentoDto Pagamento);
-        public record AgendamentoReagendadoMessage(
+        public record ProdutoAdicionadoMessage(int AgendamentoId, AgendamentoProdutoDto ProdutoAdicionado);
+    public record AgendamentoReagendadoMessage(
             int agendamentoId,
             DateTime velhaData,
-            TimeSpan velhoHorario,
+            TimeSpan? velhoHorario,
             DateTime novaData,
-            TimeSpan novoHorario);
+            TimeSpan? novoHorario);
+        public record FocusAgendamentoMessage(int AgendamentoId, DateTime Data);
 
 }

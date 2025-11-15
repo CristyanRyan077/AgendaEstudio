@@ -13,12 +13,13 @@ namespace AgendaApi.Extensions.DtoMapper
              ServicoId = dto.ServicoId,
              PacoteId = dto.PacoteId,
              Valor = dto.Valor,
+             Observacao = dto.Observacao,
              Data = dto.Data,
              Mesversario = dto.Mesversario,
              Horario = dto.Horario,
              Tema = dto.Tema,
              Status = dto.Status,
-             Entrega = dto.Tipo
+             Entrega = dto.Tipo,
          };
 
         public static AgendamentoDto ToDto(this Agendamento entity) =>
@@ -29,6 +30,7 @@ namespace AgendaApi.Extensions.DtoMapper
             CriancaId = entity.CriancaId,
             ServicoId = entity.ServicoId,
             PacoteId = entity.PacoteId,
+            Observacao = entity.Observacao ?? string.Empty,
             Valor = entity.Valor,
             Data = entity.Data,
             Horario = entity.Horario,
@@ -38,24 +40,27 @@ namespace AgendaApi.Extensions.DtoMapper
             Status = entity.Status,
             Pagamentos = entity.Pagamentos?.Select(p => p.ToDto()).ToList(),
 
-            Cliente = entity.Cliente == null ? null : new ClienteResumoDto
-            {
+
+            Cliente = entity.Cliente != null
+            ? new ClienteResumoDto 
+            { 
                 Id = entity.Cliente.Id,
                 Nome = entity.Cliente.Nome,
-                Telefone = entity.Cliente.Telefone
-            },
-            Servico = entity.Servico == null ? null : new ServicoResumoDto
-            {
-                Id = entity.Servico.Id,
-                Nome = entity.Servico.Nome,
-            },
-            Pacote = entity.Pacote == null ? null : new PacoteResumoDto
-            {
-                Id = entity.Pacote.Id,
-                Nome = entity.Pacote.Nome,
-                Valor = entity.Pacote.Valor
-            },
-            Crianca = entity.Crianca == null ? null : new CriancaResumoDto
+                Telefone = entity.Cliente.Telefone,
+                Observacao = entity.Cliente.Observacao ?? string.Empty
+            }
+            : ClienteResumoDto.Empty,
+
+            Servico = entity.Servico != null
+            ? new ServicoResumoDto { Id = entity.Servico.Id, Nome = entity.Servico.Nome }
+            : ServicoResumoDto.Empty,
+
+            Pacote = entity.Pacote != null
+            ? new PacoteResumoDto { Id = entity.Pacote.Id, Nome = entity.Pacote.Nome, Valor = entity.Pacote.Valor }
+            : PacoteResumoDto.Empty,
+
+            Crianca = entity.Crianca != null
+            ? new CriancaResumoDto
             {
                 Id = entity.Crianca.Id,
                 Genero = entity.Crianca.Genero,
@@ -63,6 +68,7 @@ namespace AgendaApi.Extensions.DtoMapper
                 Idade = entity.Crianca.Idade,
                 IdadeUnidade = entity.Crianca.IdadeUnidade
             }
+            : null
         };
         public static void UpdateEntity(this Agendamento ag, AgendamentoUpdateDto dto)
         {

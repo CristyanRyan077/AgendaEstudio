@@ -1,10 +1,13 @@
 ﻿using AgendaApi.Extensions;
 using AgendaApi.Extensions.DtoMapper;
 using AgendaApi.Extensions.MiddleWares;
+using AgendaApi.Infra;
 using AgendaApi.Infra.Interfaces;
 using AgendaApi.Interfaces;
 using AgendaApi.Models;
+using AgendaShared;
 using AgendaShared.DTOs;
+using Microsoft.EntityFrameworkCore;
 
 namespace AgendaApi.Application.Services
 {
@@ -14,10 +17,12 @@ namespace AgendaApi.Application.Services
     {
         private readonly IPagamentoRepository _repository;
         private readonly IAgendamentoService _agendamentoService;
-        public PagamentoService(IPagamentoRepository repository, IAgendamentoService agendamentoService)
+        private readonly AgendaContext _context;
+        public PagamentoService(IPagamentoRepository repository, IAgendamentoService agendamentoService, AgendaContext context)
         {
             _repository = repository;
             _agendamentoService = agendamentoService;
+            _context = context;
         }
 
         public async Task<Pagamento> GetPagamentoOrThrowAsync(int id)
@@ -74,5 +79,6 @@ namespace AgendaApi.Application.Services
         {
             throw new NotImplementedException();
         }
+       
     }
 }

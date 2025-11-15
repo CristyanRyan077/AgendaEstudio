@@ -14,6 +14,6 @@ namespace AgendaApi.Infra.Interfaces
         Task<bool> DeleteAsync(int id);
         Task<List<ClienteResumoDto>> GetAllResumoAsync();
         Task<List<AgendamentoDto?>> GetAgendamentosAsync(int clienteId);
-        Task<PagedResult<ClienteDto>> ObterPaginadoAsync(int page, int pageSize, string? nome);
+        Task<PagedResult<ClienteDto>> ObterPaginadoAsync(int page, int pageSize, string? nome, int mesRef, int anoRef);
     }
 }

@@ -2,6 +2,7 @@
 using AgendaApi.Models;
 using AgendaShared.DTOs;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace AgendaApi.Infra.Repositories
 {
@@ -62,19 +63,54 @@ namespace AgendaApi.Infra.Repositories
         }
         public async Task<List<HistoricoFinanceiroDto>> ListarHistoricoAsync(int agendamentoId)
         {
-            return await _context.Pagamentos
-            .AsNoTracking()
-            .Where(p => p.AgendamentoId == agendamentoId)
-            .OrderBy(p => p.DataPagamento)
-            .Select(p => new HistoricoFinanceiroDto(
-                p.Id,
-                p.DataPagamento,
-                p.Tipo,
-                p.Observacao ?? $"Pagamento do agendamento {agendamentoId}",
-                p.Valor,
-                p.Metodo 
-            ))
-            .ToListAsync();
+            // 1. Pagamentos
+            var pagamentos = await _context.Pagamentos
+                 .AsNoTracking()
+                 .Where(p => p.AgendamentoId == agendamentoId)
+                 .ToListAsync();
+
+            // 2. Produtos
+            var produtos = await _context.AgendamentoProdutos
+                .AsNoTracking()
+                .Where(ap => ap.AgendamentoId == agendamentoId)
+                .Include(ap => ap.Produto)
+                .Include(ap => ap.Agendamento) // traz a data
+                .ToListAsync();
+
+            var pagosViaProduto = pagamentos
+                 .Where(p => p.AgendamentoProdutoId != null)
+                 .Select(p => p.AgendamentoProdutoId!.Value)
+                 .ToHashSet();
+
+            var historicoPagamentos = pagamentos.Select(p => new HistoricoFinanceiroDto(
+             p.Id,
+             p.DataPagamento,
+             "Pagamento",
+             p.Observacao ?? "Pagamento de serviço",
+             p.Valor,
+             p.Metodo
+         ));
+            var historicoProdutos = produtos
+            .Where(ap => ap.Agendamento != null)
+            .Select(ap => new HistoricoFinanceiroDto(
+                ap.Id,
+                ap.CreatedAt,
+                "Produto",
+                ap.Produto.Nome,
+                ap.ValorUnitario * ap.Quantidade,
+                null
+            ));
+            var historicoProdutosNaoPagos = produtos
+                .Where(ap => !pagosViaProduto.Contains(ap.Id))
+                .Select(ap => new HistoricoFinanceiroDto(
+                    ap.Id, ap.CreatedAt, "Produto", ap.Produto.Nome, ap.ValorTotal, null));
+
+            return historicoPagamentos
+           .Union(historicoProdutosNaoPagos)
+           .OrderBy(h => h.Data)
+           .ToList();
+          
         }
+
     }
 }

@@ -15,15 +15,20 @@ namespace AgendaWPF.ViewModels
         public IRelayCommand IrParaSemanalCommand { get; }
         public IRelayCommand IrParaClientesCommand { get; }
         public IRelayCommand IrParaCalendarioCommand { get; }
+        public IRelayCommand IrParaFinanceiroCommand { get; }
+
         public MainViewModel(
             CardSemanal cardView,
             ClientesView clientesView,
-            CalendarioView calendarioView)
+            CalendarioView calendarioView,
+            FinanceiroView financeiroView)
 
         {
             IrParaSemanalCommand = new RelayCommand(() => ViewAtual = cardView);
             IrParaClientesCommand = new RelayCommand(() => ViewAtual = clientesView);
             IrParaCalendarioCommand = new RelayCommand(() => ViewAtual = calendarioView);
+            IrParaFinanceiroCommand = new RelayCommand(() => ViewAtual = financeiroView);
+         
           //IrparaAgendarCommand => CardSemanal.xaml.cs
 
 

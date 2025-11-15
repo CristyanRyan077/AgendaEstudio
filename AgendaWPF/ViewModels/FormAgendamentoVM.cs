@@ -45,6 +45,7 @@ namespace AgendaWPF.ViewModels
         [ObservableProperty] private AgendamentoDto novoAgendamento = new();
         [ObservableProperty] private PagamentoCreateDto novoPagamento = new();
         [ObservableProperty] private AgendamentoCreateDto createDto = new();
+        [ObservableProperty] private CriancaUpdateDto criancaupdate = new();
 
         // Listas
 
@@ -91,9 +92,22 @@ namespace AgendaWPF.ViewModels
             await CarregarDadosDoBancoAsync();
             AtualizarHorariosDisponiveis();
         }
+        public async Task CarregarAgendamentosAsync()
+        {
+            // Busca apenas os agendamentos do dia que está sendo visto
+            var lista = await _agendamentoService.ObterAgendamentosPorPeriodo(DataSelecionada.Date, DataSelecionada.Date.AddDays(1));
+
+            ListaAgendamentos.Clear();
+            if (lista != null)
+            {
+                foreach (var a in lista)
+                    ListaAgendamentos.Add(a);
+            }
+            AtualizarHorariosDisponiveis();
+        }
         public async Task CarregarDadosDoBancoAsync()
         {
-            await Task.WhenAll(CarregarClientesAsync(), CarregarServicosAsync(), CarregarPacotesAsync());
+            await Task.WhenAll(CarregarClientesAsync(), CarregarServicosAsync(), CarregarPacotesAsync(), CarregarAgendamentosAsync());
         }
         public async Task CarregarClientesAsync()
         {
@@ -184,6 +198,8 @@ namespace AgendaWPF.ViewModels
             {
                 NovoAgendamento.ServicoId = value.Id;
                 FiltrarPacotesPorServico(value.Id);
+                NovoPagamento.Valor = 20m;
+                OnPropertyChanged(nameof(NovoPagamento));
             }
 
             Debug.WriteLine($"ServicoSelecionado mudou para: {(value == null ? "null" : value.Id.ToString())}");
@@ -215,30 +231,24 @@ namespace AgendaWPF.ViewModels
         }
         private readonly List<string> _horariosFixos = new()
         {
-            "09:00", "10:00", "11:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"
+            "08:00", "09:00", "10:00", "11:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"
         };
 
         // ----------- Metodos De Horarios Disponiveis -------------- //
         public void AtualizarHorariosDisponiveis()
         {
-
-            var horarioStr = NovoAgendamento?.Horario.ToString(@"hh\:mm");
+            string? horarioStr = null;
+            if (NovoAgendamento != null && NovoAgendamento.Horario.HasValue)
+            {
+                // Use .Value para pegar o TimeSpan de dentro do nullable
+                horarioStr = NovoAgendamento.Horario.Value.ToString(@"hh\:mm");
+            }
 
             var ocupados = ListaAgendamentos
                 .Where(a => a.Data.Date == DataSelecionada.Date && (NovoAgendamento.Id == 0 || a.Id != NovoAgendamento.Id))
-                .Select(a => a.Horario.ToString(@"hh\:mm"))
+                .Select(a => a.Horario?.ToString(@"hh\:mm"))
                 .Where(h => !string.IsNullOrEmpty(h))
                 .ToList();
-
-
-            /* if (NovoAgendamento.Horario.HasValue)
-             {
-                 var horarioSelecionado = NovoAgendamento.Horario..ToString(@"hh\:mm");
-                 if (!ocupados.Contains(horarioSelecionado))
-                 {
-                     ocupados.Add(horarioSelecionado);
-                 }
-             } */
 
 
             var livres = _horariosFixos
@@ -258,12 +268,14 @@ namespace AgendaWPF.ViewModels
         partial void OnDataSelecionadaChanged(DateTime value)
         {
             CreateDto.Data = value.Date;
+            _ = CarregarAgendamentosAsync();
+
             Debug.WriteLine($"Form.DataSelecionada = {value:yyyy-MM-dd}  -> DTO.Data = {CreateDto.Data:yyyy-MM-dd}");
         }
 
         // ----------- POST / PUT Agendamento -------------- //
 
-        public void PrepararCreateDto()
+        public async Task PrepararCreateDto()
         {
 
             // validações de nulo/zero aqui já evitam 0 indo pro servidor
@@ -276,10 +288,15 @@ namespace AgendaWPF.ViewModels
             if (PacoteSelecionado is null || PacoteSelecionado.Id <= 0)
                 throw new InvalidOperationException("Selecione um pacote válido.");
 
+            if (DataSelecionada == default(DateTime) || DataSelecionada.Date < new DateTime(2020, 1, 1))           
+                throw new InvalidOperationException($"A data selecionada ({DataSelecionada.ToShortDateString()}) é inválida.");
+            if (NovoAgendamento.Horario == default(TimeSpan))
+                throw new InvalidOperationException("O horário do agendamento não foi selecionado (está 00:00).");
+
             // Zera/normaliza antes de preencher
             CreateDto = new AgendamentoCreateDto();
 
-            var hhmm = NovoAgendamento.Horario.ToString(@"hh\:mm");
+            var hhmm = NovoAgendamento.Horario?.ToString(@"hh\:mm");
             if (!TimeSpan.TryParse(hhmm, out var horario))
                 throw new InvalidOperationException("Selecione um horário válido.");
 
@@ -291,14 +308,21 @@ namespace AgendaWPF.ViewModels
             // Criança é opcional: só manda se tiver Id > 0
             if (CriancaSelecionada != null && CriancaSelecionada.Id > 0)
             {
-                CreateDto.CriancaId = CriancaSelecionada.Id;
-                CreateDto.Mesversario = CriancaSelecionada.Idade;
+                var criancaupdate = new CriancaUpdateDto { Idade = CriancaSelecionada.Idade, IdadeUnidade = CriancaSelecionada.IdadeUnidade };
+                if (criancaupdate != null)
+                {
+                    await _clienteService.UpdateCriancaAsync(CriancaSelecionada.Id, criancaupdate);
+                    CreateDto.Mesversario = CriancaSelecionada.Idade;
+                    CreateDto.CriancaId = CriancaSelecionada.Id;
+                }
+                    
             }
+            CreateDto.Observacao = NovoAgendamento.Observacao;
             CreateDto.Data = DataSelecionada.Date;
             CreateDto.Horario = horario;
             CreateDto.Valor = NovoAgendamento.Valor;
             CreateDto.Status = StatusAgendamento.Confirmado;
-            CreateDto.Tema = string.IsNullOrWhiteSpace(NovoAgendamento.Tema) ? string.Empty : NovoAgendamento.Tema;
+            CreateDto.Tema = NovoAgendamento.Tema;
             CreateDto.Tipo = TipoSelecionado;
             // Se tiver pagamento inicial
             CreateDto.PagamentoInicial = (NovoPagamento != null && NovoPagamento.Valor > 0)
@@ -316,22 +340,28 @@ namespace AgendaWPF.ViewModels
         public async Task AgendarAsync()
         {
             // --------------- Validações Iniciais --------------- //
+
             agendamentoIdAtual = Guid.NewGuid();
             Debug.WriteLine($"Agendamento iniciado - ID: {agendamentoIdAtual}");
             if (!ValidarDadosBasicos()) return;
             int? agendamentoidnotificacao = NovoAgendamento.Id;
 
             // --------------------------------------------------- //
-            PrepararCreateDto();
+            await PrepararCreateDto();
             try
             {
                 var criado = await _agendamentoService.AgendarAsync(CreateDto);
                 var completo = await _agendamentoService.GetByIdAsync(criado.Id);
+                var status = new StatusUpdateDto { Status = StatusAgendamento.Concluido };
+
+                await _agendamentoService.UpdateStatus(criado.Id, status);
+
                 var paraEnviar = completo ?? criado;
-                NovoAgendamento = paraEnviar;
+                var vmParaEnviar = new AgendamentoVM(paraEnviar);
+                NovoAgendamento = new();
                 await FinalizarAgendamento();
                 RequestClose?.Invoke(this, EventArgs.Empty);
-                _messenger.Send(new AgendamentoCriadoMessage(paraEnviar));
+                _messenger.Send(new AgendamentoCriadoMessage(vmParaEnviar));
                 //else
                 //EditarAgendamento();
             }
@@ -396,7 +426,7 @@ namespace AgendaWPF.ViewModels
                 return false;
             }
 
-            if (string.IsNullOrWhiteSpace(NovoAgendamento.Horario.ToString(@"hh\:mm")))
+            if (string.IsNullOrWhiteSpace(NovoAgendamento.Horario?.ToString(@"hh\:mm")))
             {
                 MessageBox.Show("Por favor, selecione um horário antes de agendar.", "Horário obrigatório",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -442,6 +472,6 @@ namespace AgendaWPF.ViewModels
             ListaPacotesFiltrada.Clear();
             await CarregarDadosDoBancoAsync();
         }
-        public sealed record AgendamentoCriadoMessage(AgendamentoDto Agendamento);
+        public sealed record AgendamentoCriadoMessage(AgendamentoVM Agendamento);
     }
 }

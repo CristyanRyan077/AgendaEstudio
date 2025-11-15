@@ -2,6 +2,7 @@
 using AgendaApi.Extensions;
 using AgendaApi.Extensions.DtoMapper;
 using AgendaApi.Extensions.MiddleWares;
+using AgendaApi.Infra;
 using AgendaApi.Infra.Interfaces;
 using AgendaApi.Infra.Repositories;
 using AgendaApi.Models;
@@ -14,10 +15,12 @@ namespace AgendaApi.Application.Services
     {
         private readonly IClienteRepository _repository;
         private readonly ICriancaRepository _criancaRepo;
-        public ClienteService(IClienteRepository repository, ICriancaRepository criancaRepo)
+        private readonly AgendaContext _db;
+        public ClienteService(IClienteRepository repository, ICriancaRepository criancaRepo, AgendaContext db)
         {
             _repository = repository;
             _criancaRepo = criancaRepo;
+            _db = db;
         }
 
 
@@ -78,13 +81,20 @@ namespace AgendaApi.Application.Services
             await _repository.DeleteAsync(cliente.Id);
             return true;
         }
-        public async Task<PagedResult<ClienteDto>> ObterPaginadoAsync(int page, int pageSize, string? nome)
+        public async Task<PagedResult<ClienteDto>> ObterPaginadoAsync(int page, int pageSize, string? nome, int mesRef, int anoRef)
         {
-            var result = await _repository.GetPaginadoAsync(page, pageSize, nome);
+            if (mesRef == 0 || anoRef == 0)
+            {
+                var now = DateTime.Now;
+                mesRef = now.Month;
+                anoRef = now.Year;
+            }
+
+            var result = await _repository.GetPaginadoAsync(page, pageSize, nome, mesRef, anoRef);
 
             return new PagedResult<ClienteDto>
             {
-                Items = result.Items.Select(c => c.ToDto()), // usa seu helper
+                Items = result.Items, // usa seu helper
                 TotalItems = result.TotalItems,
                 Page = result.Page,
                 PageSize = result.PageSize

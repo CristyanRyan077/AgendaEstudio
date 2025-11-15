@@ -14,6 +14,12 @@ namespace AgendaShared
         Mês = 2,
         Meses = 3
     }
+    public enum LembreteStatus
+    {
+        Pendente = 0,
+        Concluido = 1,
+        Ignorado = 2
+    }
 
     public enum Genero
     {
@@ -26,6 +32,17 @@ namespace AgendaShared
         Ativo = 1,
         Inativo = 2,
         SA = 3
+    }
+    public enum ClienteSortPreset
+    {
+        Proximos,
+        Pendencias,
+        SemAgendar,
+        Novos,
+        MaiorLtv,
+        Frequentes,
+        Inativos,
+        Aniversariantes
     }
 
     public enum StatusAgendamento

@@ -14,6 +14,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Media;
 
 namespace AgendaWPF.ViewModels
@@ -36,6 +37,7 @@ namespace AgendaWPF.ViewModels
             _agendaservice = agendaservice;
             _clienteservice = clienteservice;
             _messenger = messenger;
+            _ = CarregarProdutosAsync();
             // _produtoservice = produtoservice;
             // LimparFormulario();
 
@@ -45,7 +47,7 @@ namespace AgendaWPF.ViewModels
         [ObservableProperty] private string? servicoNome;
         [ObservableProperty] private DateTime dataAgendamento;
         [ObservableProperty] private decimal valor;
-        // [ObservableProperty] private ObservableCollection<ProdutoDto> produtosDisponiveis = new();
+        [ObservableProperty] private ObservableCollection<ProdutoDto> produtosDisponiveis = new();
 
         // editar
         [ObservableProperty] private bool estaEditando;
@@ -59,7 +61,7 @@ namespace AgendaWPF.ViewModels
         public decimal Falta => Math.Max(0, Valor - ValorPago);
         public int PercentualPago => Valor <= 0 ? 0 : (int)Math.Round(Math.Min(ValorPago, Valor) / Valor * 100m);
         public string TextoBotaoPrimario =>
-        tipoLancamento == TipoLancamento.Pagamento ? "Adicionar Pagamento" : "Adicionar Produto";
+        TipoLancamento == TipoLancamento.Pagamento ? "Adicionar Pagamento" : "Adicionar Produto";
         // Listas
         [ObservableProperty] private HistoricoFinanceiroDto? itemSelecionado;
         [ObservableProperty] private ObservableCollection<HistoricoFinanceiroDto> pagamentos = new();
@@ -69,9 +71,9 @@ namespace AgendaWPF.ViewModels
         // Novo pagamento (inputs)
         [ObservableProperty] private ObservableCollection<HistoricoFinanceiroDto> historico = new();
         [ObservableProperty] private PagamentoCreateDto novoPagamento = new();
-        //[ObservableProperty] private ProdutoCreateDto novoProduto = new();
+        [ObservableProperty] private AgendamentoProdutoCreateDto novoProduto = new();
         [ObservableProperty] private bool modoProduto;
-        //[ObservableProperty] private ProdutoDto? produtoSelecionado;
+        [ObservableProperty] private ProdutoDto? produtoSelecionado;
         [ObservableProperty]
         private TipoLancamento tipoLancamento = TipoLancamento.Pagamento;
 
@@ -80,6 +82,17 @@ namespace AgendaWPF.ViewModels
             OnPropertyChanged(nameof(ValorPago));
             OnPropertyChanged(nameof(Falta));
             OnPropertyChanged(nameof(PercentualPago));
+        }
+        public async Task UpdateStatusAsync()
+        {
+            var status = new StatusUpdateDto { Status = StatusAgendamento.Concluido };
+            await _agendaservice.UpdateStatus(AgendamentoId, status);
+            await CarregarAsync();
+        }
+        public async Task CarregarProdutosAsync()
+        {
+            var produtos = await _service.GetAllProdutosAsync();
+            ProdutosDisponiveis = new ObservableCollection<ProdutoDto>(produtos);
         }
         partial void OnTipoLancamentoChanged(TipoLancamento value)
         {
@@ -110,23 +123,6 @@ namespace AgendaWPF.ViewModels
                 throw;
             }
         }
-        public async Task AtualizarStatusAsync()
-        {
-            var valorPagoAtual = Historico?.Sum(h => h.Valor) ?? 0m;
-
-            if (valorPagoAtual >= Valor)
-            {
-                // Total pago, marcar como concluído
-               /* _clienteservice.AtivarSePendente(clienteId);
-                _agendaservice.UpdateStatus(AgendamentoId, StatusAgendamento.Concluido); */
-            }
-            else
-            {
-                // Ainda falta valor, deixar como pendente
-               /* _clienteservice.ValorIncompleto(clienteId);
-                _agendaservice.UpdateStatus(AgendamentoId, StatusAgendamento.Pendente); */
-            }
-        }
         [RelayCommand]
         public void DefinirValorRapido(object? valor)
         {
@@ -148,14 +144,16 @@ namespace AgendaWPF.ViewModels
             NovoPagamento.Valor = d;
             OnPropertyChanged(nameof(NovoPagamento));
         }
-
+        public event EventHandler? RequestClose;
         [RelayCommand]
         public async Task SalvarOuAdicionarHistoricoAsync()
         {
+            if (NovoPagamento.Valor <= 0) return;
+
             if (!ModoProduto)
             {
                 // === PAGAMENTO ===
-                if (NovoPagamento.Valor <= 0) return;
+                
 
                 var tipo = this.TipoLancamento;
 
@@ -169,17 +167,71 @@ namespace AgendaWPF.ViewModels
                 };
 
                 var pagamento = await _agendaservice.AddPagamentoAsync(AgendamentoId, dto);
-                await CarregarAsync();
+                await UpdateStatusAsync();
+
                 OnPropertyChanged(nameof(ValorPago));
                 OnPropertyChanged(nameof(Falta));
                 OnPropertyChanged(nameof(PercentualPago));
+
+                
+
+                RequestClose?.Invoke(this, EventArgs.Empty);
                 _messenger.Send(new PagamentoCriadoMessage(AgendamentoId, pagamento));
 
                 System.Diagnostics.Debug.WriteLine($"[DEBUG] ValorPago={ValorPago} Valor={Valor} Historico.Count={Historico.Count}");
-                //await AtualizarStatusAsync();
-                //LimparFormulario();
-               // NotificarFinanceiro();
+
             }
+        }
+        [RelayCommand]
+        public async Task AdicionarProduto()
+        {
+            // Adicione uma verificação de nulo
+            if (ProdutoSelecionado is null)
+            {
+                // (Opcional: mostrar um aviso)
+                MessageBox.Show("Por favor, selecione um produto."); 
+                return; // Para a execução
+            }
+            if (NovoProduto != null)
+            {
+                NovoProduto.Pagamento = new PagamentoParaProdutoCreateDto
+                {
+                    // O Valor será calculado no servidor (entidade.ValorTotal)
+                    // Você precisa preencher o método e a data/observação
+                    Metodo = MetodoPagamento.Pix, // Supondo que você tem uma propriedade para isso
+                    DataPagamento = DateTime.Now,
+                    Observacao = $"Produto: {ProdutoSelecionado.Nome}"
+                };
+                var tipo = this.TipoLancamento;
+                var produto = await _service.AdicionarProdutoAsync(AgendamentoId, NovoProduto);
+                await UpdateStatusAsync();
+
+                OnPropertyChanged(nameof(ValorPago));
+                OnPropertyChanged(nameof(Falta));
+                OnPropertyChanged(nameof(PercentualPago));
+                RequestClose?.Invoke(this, EventArgs.Empty);
+                _messenger.Send(new ProdutoAdicionadoMessage(AgendamentoId, produto));
+            }
+            else
+                MessageBox.Show("Produto não encontrado.");
+
+
+
+        }
+        partial void OnProdutoSelecionadoChanged(ProdutoDto? p)
+        {
+            if (p is null)
+            {
+                NovoProduto = new AgendamentoProdutoCreateDto();
+                return;
+            }
+
+            NovoProduto = new AgendamentoProdutoCreateDto
+            {
+                ProdutoId = p.Id,
+                Quantidade = NovoProduto?.Quantidade > 0 ? NovoProduto.Quantidade : 1,
+                ValorUnitario = (!EstaEditando || NovoProduto?.ValorUnitario <= 0) ? p.Valor : NovoProduto!.ValorUnitario
+            };
         }
     }
 }

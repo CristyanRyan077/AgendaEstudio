@@ -1,5 +1,6 @@
 ﻿
 using AgendaShared.DTOs;
+using AgendaWPF.Controles;
 using AgendaWPF.Models;
 using AgendaWPF.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,6 +35,7 @@ namespace AgendaWPF.Views
         private readonly IServiceProvider _sp;
         private AgendaState _agendaState;
         private bool _dragging;
+        private AdicionarPagamento _pagamento;
         public CalendarioViewModel viewmodel { get; }
         public CalendarioView(CalendarioViewModel vm, IServiceProvider sp, AgendaState state)
         {
@@ -214,6 +216,23 @@ namespace AgendaWPF.Views
             _dragging = false;
             _dragStart = e.GetPosition(null);
          
+        }
+        private void AbrirPagamento(object sender, RoutedEventArgs e)
+        {
+
+            if (sender is not FrameworkElement fe) return;
+
+            if (fe.DataContext is not AgendamentoDto ag) { return; }
+
+            if (DataContext is CalendarioViewModel vm)
+            {
+
+                vm.AbrirPagamentosCommand.Execute(ag);
+                e.Handled = true; // opcional
+                var vmPag = ActivatorUtilities.CreateInstance<PagamentosViewModel>(_sp, ag.Id);
+                _pagamento = ActivatorUtilities.CreateInstance<AdicionarPagamento>(_sp, vmPag);
+                _pagamento.Show();
+            }
         }
     }
 }

@@ -38,12 +38,13 @@ namespace AgendaApi.Controllers
             return CreatedAtAction(nameof(GetById), new { id = novo.Id }, novo);
         }
 
-        [HttpPut("{id:int}")]
+        [HttpPatch("{id:int}")]
         public async Task<ActionResult<CriancaDto>> Update(int id, CriancaUpdateDto dto)
         {
             var atualizado = await _service.UpdateAsync(id, dto);
             return Ok(atualizado);
         }
+
 
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)

@@ -24,10 +24,9 @@ namespace AgendaShared.DTOs
 
     public class CriancaUpdateDto
     {
-        public int Id { get; set; }
-        public string Nome { get; set; } = string.Empty;
-        public Genero Genero { get; set; }
-        public int Idade { get; set; }
-        public IdadeUnidade IdadeUnidade { get; set; } = IdadeUnidade.Meses;
+        public string? Nome { get; set; } 
+        public Genero? Genero { get; set; }
+        public int? Idade { get; set; }
+        public IdadeUnidade? IdadeUnidade { get; set; } 
     }
 }

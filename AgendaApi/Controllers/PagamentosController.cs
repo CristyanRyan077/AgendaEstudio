@@ -45,9 +45,7 @@ namespace AgendaApi.Controllers
             
             return CreatedAtAction(nameof(GetById), new { id = pagamento.Id }, pagamento);
         }
-        // PUT: api/pagamentos/5
-
-        // DELETE: api/pagamentos/5
+       
 
     }
 }

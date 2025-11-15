@@ -1,0 +1,271 @@
+﻿<UserControl x:Class="AgendaWPF.Views.FinanceiroView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:AgendaWPF.Views"
+             mc:Ignorable="d" xmlns:hc="https://handyorg.github.io/handycontrol"
+             xmlns:viewmodels="clr-namespace:AgendaWPF.ViewModels" d:DataContext="{d:DesignInstance Type=viewmodels:FinanceiroViewModel}"
+             d:DesignHeight="450" d:DesignWidth="800">
+
+    <UserControl.Resources>
+        <!-- Cores e Fontes -->
+        <SolidColorBrush x:Key="BgPrimary" Color="#2B2B2B"/>
+        <SolidColorBrush x:Key="BgSecondary" Color="#333438"/>
+        <SolidColorBrush x:Key="CardBg" Color="#3F3F3F"/>
+        <SolidColorBrush x:Key="Accent" Color="#1E90FF"/>
+        <SolidColorBrush x:Key="Success" Color="#2E8B57"/>
+        <SolidColorBrush x:Key="MutedText" Color="#BDBDBD"/>
+        <Style x:Key="SectionTitle" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Helvetica"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+
+        <!-- Botão estilizado -->
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource Accent}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="4"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                             CornerRadius="6" 
+                             Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Botão secundário -->
+        <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Background" Value="{StaticResource BgSecondary}"/>
+            <Setter Property="BorderBrush" Value="#555"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+
+        <!-- Estilo do cartão KPI -->
+        <Style x:Key="KpiCard" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource CardBg}"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="Margin" Value="8"/>
+            <Setter Property="MinWidth" Value="180"/>
+            <Setter Property="Height" Value="80"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+        </Style>
+
+        <!-- Estilo do DataGrid -->
+        <Style TargetType="DataGrid" x:Key="DarkDataGrid">
+            <Setter Property="Background" Value="{StaticResource BgSecondary}" />
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="RowBackground" Value="#2F2F2F"/>
+            <Setter Property="AlternatingRowBackground" Value="#303030"/>
+            <Setter Property="GridLinesVisibility" Value="None"/>
+            <Setter Property="BorderBrush" Value="#424242"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#252525"/>
+            <Setter Property="Foreground" Value="{StaticResource MutedText}"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="8,6"/>
+        </Style>
+
+    </UserControl.Resources>
+
+    <Grid Background="{StaticResource BgPrimary}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="280"/>
+            <ColumnDefinition Width="12"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Filtros / Sidebar -->
+        <Border Grid.Column="0" Background="{StaticResource BgSecondary}" Padding="16">
+            <DockPanel LastChildFill="True">
+                <StackPanel DockPanel.Dock="Top">
+                    <TextBlock Text="Filtros" Style="{StaticResource SectionTitle}" Margin="0,0,0,12"/>
+                    <TextBlock Text="Período" Foreground="{StaticResource MutedText}" Margin="0,2,0,6"/>
+                    <DatePicker SelectedDate="{Binding PeriodoInicio}" Margin="0,0,0,6"/>
+                    <DatePicker SelectedDate="{Binding PeriodoFim}" Margin="0,0,0,10"/>
+                    <StackPanel Orientation="Horizontal" Margin="30,0,0,0" >
+                        <Button Content="←" FontSize="16" Padding="0" Width="30" Command="{Binding VoltarMesCommand}"/>
+                        <Button Content="Mês atual" Command="{Binding QuickMesAtualCommand}" Style="{StaticResource SecondaryButton}" />
+                        <Button Content="→" FontSize="16" Padding="0" Width="30" Command="{Binding AvancarMesCommand}"/>
+
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                        <Button Content="Aplicar" Command="{Binding CarregarCommand}" Style="{StaticResource PrimaryButton}" />
+                        <Button Content="Exportar" Height="28" Command="{Binding ExportarParaExcelCommand}" Style="{StaticResource PrimaryButton}" Background="{StaticResource Success}" Margin="8,0,0,0"/>
+                    </StackPanel>
+
+                    <Separator Margin="0,16,0,12" Background="#444"/>
+
+
+                </StackPanel>
+                
+            </DockPanel>
+        </Border>
+
+        <!-- Conteúdo -->
+        <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+
+                <!-- KPIs -->
+                <TextBlock Text="Agendamentos" Foreground="White" FontSize="20" FontFamily="Helvetica" Margin="0,6,0,6"/>
+                <WrapPanel ItemHeight="100" VerticalAlignment="Top">
+                    <Border Style="{StaticResource KpiCard}">
+                        <StackPanel>
+                            <TextBlock Text="Receita bruta" Foreground="{StaticResource MutedText}" FontSize="14"/>
+                            <TextBlock Text="{Binding ReceitaBruta, StringFormat=R$ {0:N2}}" Foreground="White" FontSize="20" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource KpiCard}">
+                        <StackPanel>
+                            <TextBlock Text="Recebido" Foreground="{StaticResource MutedText}" FontSize="14"/>
+                            <TextBlock Text="{Binding Recebido, StringFormat=R$ {0:N2}}" Foreground="White" FontSize="20" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource KpiCard}">
+                        <StackPanel>
+                            <TextBlock Text="Em aberto" Foreground="{StaticResource MutedText}" FontSize="14"/>
+                            <TextBlock Text="{Binding EmAberto, StringFormat=R$ {0:N2}}" Foreground="White" FontSize="20" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource KpiCard}">
+                        <StackPanel>
+                            <TextBlock Text="% Recebido" Foreground="{StaticResource MutedText}" FontSize="12"/>
+                            <TextBlock Text="{Binding PercRecebido, StringFormat={}{0}%}" Foreground="White" FontSize="20" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource KpiCard}">
+                        <StackPanel>
+                            <TextBlock Text="Ticket médio" Foreground="{StaticResource MutedText}" FontSize="12"/>
+                            <TextBlock Text="{Binding TicketMedio, StringFormat=R$ {0:N2}}" Foreground="White" FontSize="20" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource KpiCard}">
+                        <StackPanel>
+                            <TextBlock Text="Agendamentos" Foreground="{StaticResource MutedText}" FontSize="12"/>
+                            <TextBlock Text="{Binding QtdAgendamentos}" Foreground="White" FontSize="20" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Border>
+                </WrapPanel>
+
+                <!-- Produtos -->
+                <Border Background="{StaticResource BgSecondary}"  HorizontalAlignment="Left" CornerRadius="10" Padding="12" Margin="10,10,0,30">
+                    <StackPanel>
+                        <TextBlock Text="Produtos" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                            <StackPanel>
+                                <TextBlock Text="Receita bruta" Foreground="{StaticResource MutedText}"/>
+                                <TextBlock Text="{Binding ReceitaProdutos, StringFormat=R$ {0:N2}}" Margin="0,0,20,0" Foreground="White" FontSize="18" FontWeight="Bold"/>
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock Text="Ticket médio" Foreground="{StaticResource MutedText}"/>
+                                <TextBlock Text="{Binding TicketMedioProdutos, StringFormat=R$ {0:N2}}" Margin="0,0,20,0" Foreground="White" FontSize="18" FontWeight="Bold"/>
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock Text="Vendidos" Foreground="{StaticResource MutedText}"/>
+                                <TextBlock Text="{Binding QtdProdutos}" Margin="10,0,4,0" Foreground="White" FontSize="18" FontWeight="Bold"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Busca personalizada com KeyBinding -->
+                <Border CornerRadius="12" Background="{StaticResource BgSecondary}" Padding="10" Margin="0,0,0,8">
+                    <Border.InputBindings>
+                        <KeyBinding Key="Enter" Command="{Binding CarregarCommand}"/>
+                    </Border.InputBindings>
+                    <StackPanel>
+                        <TextBlock Text="Busca Personalizada" Foreground="White" FontWeight="Bold" FontSize="16"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <hc:TextBox Width="350" Text="{Binding FiltroClienteNome, UpdateSourceTrigger=PropertyChanged}" hc:InfoElement.Placeholder="Buscar por nome do cliente"/>
+                            <Button Content="Limpar" Margin="8,0,0,0" Command="{Binding LimparFiltroClienteCommand}" Style="{StaticResource SecondaryButton}"/>
+                            <Button Content="Aplicar" Margin="8,0,0,0" Command="{Binding CarregarCommand}" Style="{StaticResource PrimaryButton}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Resumo por serviço / produto lado a lado -->
+                <Grid Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="24" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Background="{StaticResource BgSecondary}" CornerRadius="10" Padding="10">
+                        <StackPanel>
+                            <TextBlock Text="Resumo por serviço" Foreground="White" FontWeight="Bold" FontSize="16" Margin="0,0,0,8"/>
+                            <DataGrid ItemsSource="{Binding ServicosResumo}" AutoGenerateColumns="False" CanUserAddRows="False" MaxHeight="300" RowHeaderWidth="0"
+                                   Style="{StaticResource DarkDataGrid}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Serviço" Binding="{Binding Servico}" Width="*"/>
+                                    <DataGridTextColumn Header="Receita" Binding="{Binding Receita, StringFormat=R$ {0:N2}}" Width="120"/>
+                                    <DataGridTextColumn Header="Qtd" Binding="{Binding Qtd}" Width="60"/>
+                                    <DataGridTextColumn Header="Ticket médio" Binding="{Binding TicketMedio, StringFormat=R$ {0:N2}}" Width="120"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="2" Background="{StaticResource BgSecondary}" CornerRadius="10" Padding="10">
+                        <StackPanel>
+                            <TextBlock Text="Resumo por produto" Foreground="White" FontWeight="Bold" FontSize="16" Margin="0,0,0,8"/>
+                            <DataGrid ItemsSource="{Binding ProdutoResumo}" AutoGenerateColumns="False" CanUserAddRows="False" MaxHeight="300" RowHeaderWidth="0"
+                                   Style="{StaticResource DarkDataGrid}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Produto" Binding="{Binding Produto}" Width="*"/>
+                                    <DataGridTextColumn Header="Receita" Binding="{Binding Receita, StringFormat=R$ {0:N2}}" Width="120"/>
+                                    <DataGridTextColumn Header="Qtd" Binding="{Binding Qtd}" Width="60"/>
+                                    <DataGridTextColumn Header="Ticket médio" Binding="{Binding TicketMedio, StringFormat=R$ {0:N2}}" Width="120"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- Em aberto -->
+                <Border CornerRadius="12" Background="{StaticResource BgSecondary}" Padding="10" Margin="0,0,0,24">
+                    <StackPanel>
+                        <TextBlock Text="Em aberto (cobranças)" Foreground="White" FontWeight="Bold" FontSize="16" Margin="0,0,0,8"/>
+                        <DataGrid EnableRowVirtualization="True" EnableColumnVirtualization="True" ItemsSource="{Binding EmAbertoLista}" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
+                               HeadersVisibility="Column" MaxHeight="500" RowHeaderWidth="0" Style="{StaticResource DarkDataGrid}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Data" Binding="{Binding Data, StringFormat=dd/MM/yyyy}" Width="100"/>
+                                <DataGridTextColumn Header="Cliente" Binding="{Binding Cliente}" Width="200"/>
+                                <DataGridTextColumn Header="Serviço" Binding="{Binding Servico}" Width="200"/>
+                                <DataGridTextColumn Header="Valor" Binding="{Binding Valor, StringFormat=R$ {0:N2}}" Width="100"/>
+                                <DataGridTextColumn Header="Pago" Binding="{Binding ValorPago, StringFormat=R$ {0:N2}}" Width="100"/>
+                                <DataGridTextColumn Header="Falta" Binding="{Binding Falta, Mode=OneWay, StringFormat=R$ {0:N2}}" Width="100"/>
+                                <DataGridTemplateColumn Header="%" IsReadOnly="True" Width="120">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Grid>
+                                                <ProgressBar Value="{Binding PercentualPago,Mode=OneWay}" Maximum="100" Height="12" VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+
+</UserControl>

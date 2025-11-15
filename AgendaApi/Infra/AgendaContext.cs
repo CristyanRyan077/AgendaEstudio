@@ -1,4 +1,5 @@
 ﻿
+using AgendaApi.Domain.Models;
 using AgendaApi.Models;
 using AgendaShared.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -28,9 +29,10 @@ public partial class AgendaContext : DbContext
     public DbSet<Servico> Servicos { get; set; }
     public DbSet<Pacote> Pacotes { get; set; }
     public DbSet<Produto> Produtos { get; set; }
+    public DbSet<Lembrete> Lembretes { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlServer("Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=AgendaLocal;Integrated Security=True;Encrypt=True;Trust Server Certificate=True");
+        => optionsBuilder.UseSqlServer("Data Source=PC02\\SQLEXPRESS;Initial Catalog=AgendaDB;Integrated Security=True;Encrypt=True;Trust Server Certificate=True");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -139,6 +141,13 @@ public partial class AgendaContext : DbContext
 
             entity.Property(e => e.Nome).HasMaxLength(255);
             entity.Property(e => e.PossuiCrianca).HasDefaultValue(true);
+        });
+
+        modelBuilder.Entity<Lembrete>(entity =>
+        {
+            entity.HasIndex(e => e.ClienteId, "IX_Lembretes_ClienteId");
+            entity.Property(e => e.Descricao).HasMaxLength(500);
+            entity.Property(e => e.Titulo).HasMaxLength(100);
         });
 
         OnModelCreatingPartial(modelBuilder);

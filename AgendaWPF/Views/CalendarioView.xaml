@@ -8,7 +8,7 @@
              mc:Ignorable="d" xmlns:hc="https://handyorg.github.io/handycontrol"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:models="clr-namespace:AgendaWPF.Models" xmlns:viewmodels="clr-namespace:AgendaWPF.ViewModels"
-             xmlns:controles="clr-namespace:AgendaWPF.Controles"
+             xmlns:controles="clr-namespace:AgendaWPF.Controles" xmlns:local="clr-namespace:AgendaWPF.Views"
              d:DataContext="{d:DesignInstance Type=viewmodels:CalendarioViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid Background="#FF333333">
@@ -32,13 +32,12 @@
 
 
 
-                    <Grid Grid.Row="3" VerticalAlignment="Bottom" Margin="0,0,40,0" Grid.Column="2" HorizontalAlignment="Right">
-                       
+                    <Grid Grid.Row="3" Width="240" VerticalAlignment="Bottom" Margin="0,0,20,120" Grid.Column="2" HorizontalAlignment="Right">
+                    <StackPanel>
+                        <controles:ClienteAutoComplete />
+                    </StackPanel>
+                    
 
-                        <hc:TextBox hc:InfoElement.Placeholder="Buscar por nome"
-                         Height="32" Width="350" Background="White" HorizontalAlignment="Left"
-                         Text="{Binding TextoPesquisa, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" BorderBrush="Black"
-                         />
                     </Grid>
                   
 
@@ -223,104 +222,154 @@
                 <ContentControl Content="{Binding AgendamentoSelecionado}">
                     <ContentControl.ContentTemplate>
                         <DataTemplate DataType="{x:Type shared:AgendamentoDto}">
-                            <!-- Exemplo de layout limpo -->
                             <Grid>
+                                <Grid.Resources>
+                                    <Style x:Key="LabelTitle" TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="#666"/>
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                        <Setter Property="FontSize" Value="12"/>
+                                    </Style>
+                                    <Style x:Key="ChipStyle" TargetType="Border">
+                                        <Setter Property="Background" Value="#E0E0E0"/>
+                                        <Setter Property="CornerRadius" Value="12"/>
+                                        <Setter Property="Padding" Value="6,2"/>
+                                        <Setter Property="HorizontalAlignment" Value="Left"/>
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                    </Style>
+
+                                </Grid.Resources>
                                 <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
 
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="{Binding ClienteId, StringFormat='#{0:}'}" FontSize="16" VerticalAlignment="Center"/>
-                                    <TextBlock Text="{Binding Cliente.Nome}"
-                                    FontSize="22" FontWeight="Bold" Margin="5,0,10,4"/>
-                                    <TextBlock Text="{Binding Cliente.Telefone}"
-                                    FontSize="18" VerticalAlignment="Center" FontWeight="Bold"/>
-                                </StackPanel>
-       
-                                <Button Grid.Column="1"
-                                Command="{Binding DataContext.FecharDetalhesCommand,
-                                                  RelativeSource={RelativeSource AncestorType=Window}}"
-                                Content="Fechar" Padding="12,6" />
+                                <Grid Grid.Row="0" Margin="0,0,0,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
 
-                                <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,2,0,0">
-                                    <TextBlock Text="{Binding Data, StringFormat='{}{0: dd/MM/yyyy}'}" FontSize="14" />
-                                    <TextBlock Text=" • "/>
-                                    <TextBlock Text="{Binding Horario,StringFormat=\{0:hh\\:mm\}h}" FontSize="14" />
-                                    <TextBlock Text=" • "/>
-                                    <TextBlock Text="{Binding Tema, TargetNullValue='Sem tema'}" />
-                                </StackPanel>
+                                    <!-- Avatar simples com iniciais -->
+                                    <Border Width="72" Height="72" CornerRadius="36" Background="#FF607D8B" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                        <TextBlock Text="{Binding Cliente.Nome}" Foreground="White" FontWeight="Bold" FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis">
 
-                                <StackPanel Grid.Row="2" Margin="2,5,0,0">
+                                        </TextBlock>
+                                    </Border>
 
-                                    <TextBlock Text="{Binding Servico.Nome}" />
-                                    <TextBlock Text="{Binding Pacote.Nome, TargetNullValue='—'}" />
-                                    <TextBlock IsEnabled="False">
-                                    <Run Text="Valor: "/>
-                                    <Run Text="{Binding Valor, StringFormat={}{0:C}}"/>
-                                    <Run Text="  (Pago: "/>
-                                    <Run Text="{Binding ValorPago, Mode=OneWay, StringFormat={}{0:C}}"/>
-                                    <Run Text=")"/>
-                                    </TextBlock>
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="Crianca: "/>
-                                        <TextBlock Text="{Binding Crianca.Nome, TargetNullValue='—'}" Margin="0,0,5,0" />
-                                        <TextBlock Text="{Binding MesversarioFormatado}"/>
+                                    <!-- Resumo -->
+                                    <StackPanel Grid.Column="1" Margin="12,0,12,0" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Cliente.Nome}" FontSize="20" FontWeight="Bold" Foreground="#111"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                            <TextBlock Text="📞" Margin="0,2,6,0"/>
+                                            <TextBlock Text="{Binding Cliente.Telefone}" Margin="0,0,12,0"/>
+                                            <TextBlock Text="🧾" Margin="0,0,6,0"/>
+                                            <TextBlock Text="{Binding Servico.Nome}" />
+                                        </StackPanel>
                                     </StackPanel>
-                                
+
+                                    <!-- Ações -->
+                                    <StackPanel Grid.Column="2" VerticalAlignment="Top" HorizontalAlignment="Right">
+                                        <Button Background="Red" Content="X" FontSize="16" Padding="12,0" Margin="90,0,0,10"
+                                                Command="{Binding DataContext.FecharDetalhesCommand,
+                                                RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:CalendarioView}}}"/>
+                                        <Button Background="AliceBlue" Content="✎ Editar" Width="90" Margin="0,0,0,8" />
+                                        
+                     
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Linha de informações importantes -->
+                                <Border Grid.Row="1" Background="#F5F7FA" Padding="10" CornerRadius="6" Margin="0,0,0,12">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0" Orientation="Vertical">
+                                            <TextBlock Text="Data" Style="{StaticResource LabelTitle}"/>
+                                            <TextBlock Text="{Binding Data, StringFormat={}{0:dd/MM/yyyy}}"  Margin="0,4,0,8"/>
+
+                                            <TextBlock Text="Horário" Style="{StaticResource LabelTitle}"/>
+                                            <TextBlock Text="{Binding Horario, StringFormat=\{0:hh\\:mm\}h}"  Margin="0,4,0,0"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="1" Orientation="Vertical">
+                                            <TextBlock Text="Valor" Style="{StaticResource LabelTitle}"/>
+                                            <TextBlock Text="{Binding Valor, StringFormat={}R{0:C}}" Margin="0,4,0,8"/>
+
+                                            <TextBlock Text="Pago" Style="{StaticResource LabelTitle}"/>
+                                            <Border Style="{StaticResource ChipStyle}" Padding="6">
+                                                <TextBlock Text="{Binding ValorPago,StringFormat={}R{0:C}}" FontSize="14" x:Name="PaymentStatusText" FontWeight="Bold"/>
+                                            </Border>
+
+
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                                <Border Grid.Row="2" MaxWidth="300" HorizontalAlignment="Left" Background="#F5F7FA" Padding="10" CornerRadius="6" Margin="0,0,0,12">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="150"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0" Orientation="Vertical">
+                                            <TextBlock Text="Crianca" Style="{StaticResource LabelTitle}"/>
+                                            <TextBlock Text="{Binding Crianca.Nome}" FontSize="16" Margin="0,4,0,8"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="1" Orientation="Vertical">
+                                            <TextBlock Text="Idade" Style="{StaticResource LabelTitle}"/>
+                                            <TextBlock Text="{Binding MesversarioFormatado}" Margin="0,4,0,8"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Observações -->
+                                <StackPanel Grid.Row="3" Margin="0,0,0,12">
+                                    <TextBlock Text="Observações" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                                    <Border Background="#FFF" Padding="8" CornerRadius="6" BorderBrush="#EEE" BorderThickness="1" MaxHeight="120">
+                                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                            <TextBlock Text="{Binding Observacao}" TextWrapping="Wrap"/>
+                                        </ScrollViewer>
+                                    </Border>
                                 </StackPanel>
 
-                                <!-- Tabs simples (detalhes / pagamentos / histórico) -->
-                                <TabControl Grid.Row="3" Grid.ColumnSpan="2" Margin="0,16,0,0">
+                                <!-- Tabs (Pagamentos / Histórico) -->
+                                <TabControl Grid.Row="4" Margin="0">
                                     <TabItem Header="Pagamentos">
                                         <Grid>
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="80"/>
+                                                <RowDefinition Height="Auto"/>
                                             </Grid.RowDefinitions>
+
                                             <DataGrid ItemsSource="{Binding Pagamentos}"
-                                                      AutoGenerateColumns="False"
-                                                      CanUserAddRows="False"
-                                                      CanUserDeleteRows="False"
-                                                      HeadersVisibility="Column"
-                                                      Background="LightGray" BorderBrush="#DDD"
-                                                      BorderThickness="1" RowHeight="35"
-                                                      ColumnHeaderHeight="40"
-                                                      FontSize="14" FontFamily="Segoe UI"
-                                                      GridLinesVisibility="None"       
-                                                      SnapsToDevicePixels="True">
+                                                       AutoGenerateColumns="False"
+                                                       CanUserAddRows="False"
+                                                       CanUserDeleteRows="False"
+                                                       HeadersVisibility="Column"
+                                                       Background="Transparent" BorderBrush="#DDD"
+                                                       BorderThickness="1" RowHeight="36"
+                                                       ColumnHeaderHeight="40"
+                                                       FontSize="14" FontFamily="Segoe UI"
+                                                       GridLinesVisibility="None"
+                                                       SnapsToDevicePixels="True" Margin="0,0,0,8">
                                                 <DataGrid.Effect>
-                                                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.3"/>
+                                                    <DropShadowEffect BlurRadius="6" ShadowDepth="2" Opacity="0.15"/>
                                                 </DataGrid.Effect>
                                                 <DataGrid.Resources>
-                                                    <!-- Cabeçalhos -->
                                                     <Style TargetType="DataGridColumnHeader">
                                                         <Setter Property="Background" Value="#2D89EF"/>
                                                         <Setter Property="Foreground" Value="White"/>
                                                         <Setter Property="FontWeight" Value="SemiBold"/>
                                                         <Setter Property="HorizontalContentAlignment" Value="Center"/>
                                                         <Setter Property="Padding" Value="8"/>
-                                                    </Style>
-                                                    <!-- Linhas -->
-                                                    <Style TargetType="DataGridRow">
-                                                        <Setter Property="Cursor" Value="Hand"/>
-                                                        <Setter Property="SnapsToDevicePixels" Value="True"/>
-                                                        <Setter Property="ToolTip" Value="Clique para selecionar esta linha"/>
-                                                        <Style.Triggers>
-                                                            <Trigger Property="IsMouseOver" Value="True">
-                                                                <Setter Property="Background" Value="#E3F2FD"/>
-                                                            </Trigger>
-                                                            <Trigger Property="IsSelected" Value="True">
-                                                                <Setter Property="Background" Value="#BBDEFB"/>
-                                                                <Setter Property="Foreground" Value="Black"/>
-                                                            </Trigger>
-                                                        </Style.Triggers>
                                                     </Style>
                                                 </DataGrid.Resources>
                                                 <DataGrid.Columns>
@@ -330,17 +379,16 @@
                                                     <DataGridTextColumn Header="Observações" Binding="{Binding Observacao}" Width="*"/>
                                                 </DataGrid.Columns>
                                             </DataGrid>
-                                            <StackPanel Margin="150,0,0,0" Grid.Row="1" Orientation="Horizontal">
-                                                <Button Content="Adicionar" Margin="0,0,10,0" Background="Green"/>
+
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1" Margin="0,8,0,0">
+                                                <Button Content="Adicionar" Click="AbrirPagamento" Margin="0,0,10,0" Background="Green"/>
                                                 <Button Content="Apagar" Background="Red"/>
                                             </StackPanel>
                                         </Grid>
-                                        
-                                    
                                     </TabItem>
+
                                     <TabItem Header="Histórico">
-                                        <!-- histórico do cliente -->
-                                        <!-- ... -->
+                                        <TextBlock Margin="8" Foreground="#666">Histórico do cliente e alterações recentes aparecerão aqui.</TextBlock>
                                     </TabItem>
                                 </TabControl>
                             </Grid>

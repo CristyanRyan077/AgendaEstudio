@@ -48,6 +48,16 @@ namespace AgendaApi.Controllers
             var atualizado = await _service.UpdateAsync(id, dto);
             return Ok(atualizado);
         }
+        [HttpPatch("{id}/atualizarStatus")]
+        public async Task<IActionResult> UpdateStatus(int id, [FromBody] StatusUpdateDto dto)
+        {
+            
+            var resultado = await _service.UpdateStatus(id, dto.Status);
+            if (resultado.IsFailure)
+                return BadRequest(resultado.Error);
+
+            return NoContent(); // 204 No Content
+        }
 
         // DELETE: api/v1/agendamento/5
         [HttpDelete("{id:int}")]
@@ -81,7 +91,18 @@ namespace AgendaApi.Controllers
             // 3. Se deu sucesso, retorna sucesso
             return NoContent(); // HTTP 204
         }
+        [HttpGet("search")]
+        [ProducesResponseType(typeof(List<AgendamentoDto>), 200)]
+        public async Task<IActionResult> SearchAgendamentos([FromQuery] string term)
+        {
+            if (string.IsNullOrWhiteSpace(term))
+            {
+                return BadRequest("O termo de busca não pode estar vazio.");
+            }
 
+            var agendamentos = await _service.SearchAgendamentosAsync(term);
+            return Ok(agendamentos);
+        }
 
     }
 }

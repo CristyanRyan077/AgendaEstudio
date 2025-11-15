@@ -27,6 +27,8 @@ namespace AgendaWPF.Controles
             _vm = vm;
             DataContext = _vm;
             Loaded += async (_, __) => await vm.CarregarAsync();
+            if (DataContext is PagamentosViewModel form)
+                form.RequestClose += (_, __) => Close();
         }
     }
 }

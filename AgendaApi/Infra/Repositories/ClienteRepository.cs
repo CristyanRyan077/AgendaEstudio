@@ -1,6 +1,7 @@
 ﻿using AgendaApi.Domain.Models;
 using AgendaApi.Infra.Interfaces;
 using AgendaApi.Models;
+using AgendaShared.DTOs;
 using Microsoft.EntityFrameworkCore;
 
 namespace AgendaApi.Infra.Repositories
@@ -50,6 +51,7 @@ namespace AgendaApi.Infra.Repositories
         {
             return await _context.Clientes
                .Include(c => c.Criancas)
+               .Include(c => c.Agendamentos)
                .FirstOrDefaultAsync(c => c.Id == id);
         }
 
@@ -58,12 +60,30 @@ namespace AgendaApi.Infra.Repositories
             _context.Clientes.Update(cliente);
             await _context.SaveChangesAsync();
         }
-        public async Task<PagedResult<Cliente>> GetPaginadoAsync(int page, int pageSize, string? nome)
+        public async Task<PagedResult<ClienteDto>> GetPaginadoAsync(int page, int pageSize, string? nome, int mesRef, int anoRef)
         {
             var query = _context.Clientes
                 .Include(c => c.Criancas)
                 .Include(c => c.Agendamentos)
-                .AsNoTracking();
+                .ThenInclude(a => a.Pagamentos)
+                .Select(c => new ClienteDto
+                {
+                    Id = c.Id,
+                    Nome = c.Nome,
+                    Telefone = c.Telefone,
+                    TotalAgendamentos = c.Agendamentos.Count(),
+                    Email = c.Email,
+                    Observacao = c.Observacao,
+                    TotalPagoHistorico = c.Agendamentos.Sum(a => a.Pagamentos.Sum(p => p.Valor)),
+                    TotalPagoMesAtual = c.Agendamentos
+                    .Where(a => a.Data.Month == mesRef && a.Data.Year == anoRef)
+                    .Sum(a => a.Pagamentos.Sum(p => p.Valor)),
+                    Criancas = c.Criancas.Select(cr => new CriancaDto { Id = cr.Id, Nome = cr.Nome, Idade = cr.Idade, IdadeUnidade = cr.IdadeUnidade })
+                    .ToList() 
+                }).AsNoTracking();
+
+
+
 
             if (!string.IsNullOrWhiteSpace(nome))
                 query = query.Where(c => c.Nome.Contains(nome));
@@ -71,12 +91,12 @@ namespace AgendaApi.Infra.Repositories
             var total = await query.CountAsync();
 
             var clientes = await query
-                .OrderBy(c => c.Nome)
+                .OrderByDescending(c => c.Id)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
 
-            return new PagedResult<Cliente>
+            return new PagedResult<ClienteDto>
             {
                 Items = clientes,
                 TotalItems = total,

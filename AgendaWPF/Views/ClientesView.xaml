@@ -218,10 +218,10 @@
             <TextBlock Text="{Binding TotalPaginas}" Margin="0,20,0,0"/>
             <Button Content="⮞" FontWeight="Bold" Foreground="Black" BorderBrush="Transparent"
                     Background="Transparent" FontSize="33" Height="50" Command="{Binding ProximaPaginaCommand}">
-               
             </Button>
+            
             <ComboBox ItemsSource="{Binding OpcoesTamanhoPagina}"
-              SelectedItem="{Binding TamanhoPagina, Mode=TwoWay}"
+              SelectedItem="{Binding PageSize, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
               Width="60" Height="40"
               Margin="15,0,0,0"
               ToolTip="Itens por página"/>
@@ -275,13 +275,13 @@
                  IsChecked="{Binding FiltroSelecionado, ConverterParameter=S/A, Converter={StaticResource StringEqualsConverter}}" /> -->
             <hc:TextBox hc:InfoElement.Placeholder="Buscar por nome"
                      Height="32" Width="350" Background="White" HorizontalAlignment="Right"
-                     Text="{Binding FiltroNome, UpdateSourceTrigger=PropertyChanged}" BorderBrush="Black"
+                     Text="{Binding PesquisaText, UpdateSourceTrigger=PropertyChanged}" BorderBrush="Black"
                      />
             <materialDesign:PackIcon Kind="Search" Width="26" Height="26" Margin="8,0,0,0" VerticalAlignment="Center"/>
         </StackPanel>
 
         <!-- DataGrid -->
-        <DataGrid Grid.Row="4" Grid.ColumnSpan="2" VerticalAlignment="Top" MinHeight="260"
+        <DataGrid Grid.Row="4" Grid.ColumnSpan="2" VerticalAlignment="Top" 
                   ItemsSource="{Binding Clientes}"
                   SelectedItem="{Binding ClienteSelecionado}"
                   AutoGenerateColumns="False"
@@ -335,7 +335,6 @@
 
                 <DataGridTextColumn Header="Total Pago"
                         Binding="{Binding TotalPagoHistorico, StringFormat={}{0:C}}"/>
-                <DataGridTextColumn Header="Nascimento" Binding="{Binding Nascimento, StringFormat=dd/MM/yyyy}" IsReadOnly="True" />
                 <DataGridTextColumn Header="Status" Binding="{Binding Status}" >
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
@@ -356,10 +355,8 @@
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
-
-                <DataGridTextColumn Header="Facebook"   Binding="{Binding Facebook}"/>
-                <DataGridTextColumn Header="Instagram"  Binding="{Binding Instagram}"/>
-                <DataGridTextColumn Header="Observação" Binding="{Binding Observacao}"/>
+                <DataGridTextColumn Header="Agendamentos" Binding="{Binding TotalAgendamentos}"/>
+                <DataGridTextColumn Header="Observação" Width="299" Binding="{Binding Observacao}"/>
 
 
             </DataGrid.Columns>
