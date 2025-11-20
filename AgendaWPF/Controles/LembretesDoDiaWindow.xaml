@@ -1,0 +1,52 @@
+﻿<Window x:Class="AgendaWPF.Controles.LembretesDoDiaWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AgendaWPF.Controles"
+        mc:Ignorable="d" Title="Lembretes do dia"
+        WindowStartupLocation="CenterScreen"  xmlns:models="clr-namespace:AgendaWPF.Models"
+        Height="600" Width="900">
+    <Border Padding="12" Background="#FFF8F8F8">
+        <ScrollViewer VerticalScrollBarVisibility="Visible">
+            <StackPanel>
+
+                <TextBlock Margin="0,0,0,8"
+                       FontSize="16"
+                       FontWeight="Bold"
+                       Text="{Binding Data, StringFormat='Lembretes de {0:dd/MM/yyyy}'}"/>
+
+                <ItemsControl ItemsSource="{Binding Lembretes}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type models:LembretesVM}">
+                            <Border Margin="0,0,0,6"
+                                Padding="6"
+                                Background="#FFEFEFEF"
+                                CornerRadius="6">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Titulo}"
+                                           FontWeight="Bold"
+                                           FontSize="14"/>
+                                    <TextBlock Text="{Binding Descricao}"
+                                           TextWrapping="Wrap"
+                                           FontSize="12"
+                                           Margin="0,2,0,0"/>
+
+                                    <Image Source="{Binding CaminhoImagem}"
+                                        Stretch="Uniform"  MaxHeight="500" HorizontalAlignment="Left"
+                                        Visibility="{Binding CaminhoImagem, 
+                                        Converter={StaticResource NullToVisibilityConverter}}">
+                                    </Image>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+
+
+            </StackPanel>
+        </ScrollViewer>
+    </Border>
+        
+</Window>

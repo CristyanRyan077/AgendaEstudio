@@ -46,7 +46,7 @@ namespace AgendaApi.Controllers
 
         // 4. Resumo por Serviço
         [HttpGet("resumo/servicos")]
-        public async Task<ActionResult<List<ServicoResumoDTO>>> GetResumoPorServico([FromQuery] FinanceiroFiltroRequest filtro)
+        public async Task<ActionResult<List<ServicoFaturamentoDTO>>> GetResumoPorServico([FromQuery] FinanceiroFiltroRequest filtro)
         {
             var lista = await _service.ResumoPorServicoAsync(filtro);
             return Ok(lista);

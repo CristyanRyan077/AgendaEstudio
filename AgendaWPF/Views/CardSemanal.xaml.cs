@@ -45,6 +45,26 @@ namespace AgendaWPF.Views
             Unloaded += OnCardSemanalUnloaded;
 
         }
+        private void BtnLembretes_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Button btn)
+                return;
+
+            if (btn.DataContext is not DiaAgendamento dia)
+                return;
+
+            // Se quiser, pode ignorar se por algum motivo não tiver lembretes
+            if (!dia.TemLembretes)
+                return;
+
+            var win = new LembretesDoDiaWindow
+            {
+                DataContext = dia,
+                Owner = Window.GetWindow(this)
+            };
+
+            win.ShowDialog();
+        }
         private void OnCardSemanalLoaded(object sender, RoutedEventArgs e)
         {
             // Se inscreve no evento da ViewModel
@@ -164,6 +184,10 @@ namespace AgendaWPF.Views
             }
             else
             {
+                if (_agendar.WindowState == WindowState.Minimized)
+                {
+                    _agendar.WindowState = WindowState.Normal;
+                }
                 _agendar.Activate();
             }
             return _agendar;

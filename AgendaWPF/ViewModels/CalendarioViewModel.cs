@@ -24,6 +24,7 @@ namespace AgendaWPF.ViewModels
         private readonly IAgendamentoService _agendamentoService;
         private readonly IClienteService _clienteService;
         private readonly IPagamentoService _pagamentoservice;
+        private readonly ILembreteService _lembreteService;
         private readonly IMessenger _messenger;
         private readonly IAcoesService _acoes;
         private CancellationTokenSource? _loadCts;
@@ -45,7 +46,8 @@ namespace AgendaWPF.ViewModels
             IAgendamentoService agendamentoService,
             IMessenger messenger,
             IAcoesService acoes,
-            IClienteService clienteService)
+            IClienteService clienteService,
+            ILembreteService lembreteService)
         {
             _agendamentoService = agendamentoService;
             _pagamentoservice = pagamentoservice;
@@ -78,7 +80,7 @@ namespace AgendaWPF.ViewModels
                     await ReloadMonthAsync();
                 }
             });
-
+            _lembreteService = lembreteService;
         }
         private bool HorarioOcupado(DateTime dia, TimeSpan? horario, int agendamentoIdIgnorar = 0)
         {
@@ -99,7 +101,8 @@ namespace AgendaWPF.ViewModels
             var ct = _loadCts.Token;
 
             CarregarDias(MesAtual);                 
-            await PreencherAgendamentosAsync(ct);   
+            await PreencherAgendamentosAsync(ct);
+            await PreencherLembretesAsync(ct);
         }
         private async Task ReagendarAsync((AgendamentoDto ag, DateTime novaData) p)
         {
@@ -189,6 +192,7 @@ namespace AgendaWPF.ViewModels
         private async Task PreencherAgendamentosAsync(CancellationToken ct)
         {
             var (inicio, fim) = GetMonthRange(MesAtual);
+  
 
             // 1) pega todos do mês (fim exclusivo)
             var agendamentos = await _agendamentoService
@@ -207,6 +211,38 @@ namespace AgendaWPF.ViewModels
                 dia.Agendamentos.Clear();
                 if (porDia.TryGetValue(dia.Data.Date, out var doDia))
                     foreach (var ag in doDia) dia.Agendamentos.Add(ag);
+            }
+        }
+        private async Task PreencherLembretesAsync(CancellationToken ct)
+        {
+            var (inicio, fim) = GetMonthRange(MesAtual);
+
+            // 1) Busca todos os lembretes do mês na API
+            var filtro = new LembreteQuery
+            {
+                Inicio = inicio,
+                Fim = fim
+            };
+
+            var lembretes = await _lembreteService.ListAsync(filtro, ct);
+
+            // 2) Agrupa por dia
+            var porDia = lembretes
+                .GroupBy(l => l.DataAlvo.Date)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            // 3) Preenche na sua grade de dias
+            foreach (var dia in DiasDoMes)
+            {
+                ct.ThrowIfCancellationRequested();
+
+                dia.Lembretes.Clear();
+
+                if (porDia.TryGetValue(dia.Data.Date, out var doDia))
+                {
+                    foreach (var l in doDia)
+                        dia.Lembretes.Add(new LembretesVM(l));
+                }
             }
         }
         [RelayCommand]
@@ -244,7 +280,8 @@ namespace AgendaWPF.ViewModels
                 DiasDoMes.Add(new DiaCalendario
                 {
                     Data = inicio.AddDays(i),
-                    Agendamentos = new ObservableCollection<AgendamentoDto>()
+                    Agendamentos = new ObservableCollection<AgendamentoDto>(),
+                    
                 });
             }
 

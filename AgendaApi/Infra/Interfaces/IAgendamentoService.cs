@@ -2,6 +2,7 @@
 using AgendaApi.Models;
 using AgendaShared;
 using AgendaShared.DTOs;
+using AgendaShared.Helpers;
 
 namespace AgendaApi.Interfaces
 {
@@ -15,7 +16,7 @@ namespace AgendaApi.Interfaces
         Task<bool> DeleteAsync(int id);
         Task<IEnumerable<AgendamentoDto>> ObterPorPeriodoAsync(DateTime inicio, DateTime fim);
         Task<Result> ReagendarAsync(int agendamentoId, DateTime novaData, TimeSpan? novoHorario);
-        Task<List<AgendamentoDto>> SearchAgendamentosAsync(string searchTerm);
+        Task<List<AgendamentoDto>> SearchAgendamentosAsync(AgendamentoSearchFilter filtro);
         Task<Result> UpdateStatus(int id, StatusAgendamento novoStatus);
     }
 }

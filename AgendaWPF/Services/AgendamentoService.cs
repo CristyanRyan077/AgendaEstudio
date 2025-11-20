@@ -1,5 +1,6 @@
 ﻿using AgendaShared;
 using AgendaShared.DTOs;
+using AgendaShared.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -20,7 +21,7 @@ namespace AgendaWPF.Services
         Task<AgendamentoDto> AgendarAsync(AgendamentoCreateDto dto, CancellationToken ct = default);
         Task<AgendamentoDto> GetByIdAsync(int id);
         Task ReagendarAsync(int id, ReagendarDto dto);
-        Task<List<AgendamentoDto>> SearchAgendamentoAsync(string termo);
+        Task<List<AgendamentoDto>> SearchAgendamentoAsync(AgendamentoSearchFilter filtro);
         Task UpdateStatus(int id, StatusUpdateDto status);
     }
 
@@ -54,7 +55,15 @@ namespace AgendaWPF.Services
         {
             try
             {
-                var url = $"api/agendamentos/periodo?inicio={inicio:yyyy-MM-dd}&fim={fim:yyyy-MM-dd}";
+                var parametros = new List<string>
+                {
+                    // Parâmetros de data que são obrigatórios
+                    $"inicio={inicio:yyyy-MM-dd}",
+                    $"fim={fim:yyyy-MM-dd}"
+                };
+              
+                var queryString = string.Join("&", parametros);
+                var url = $"api/agendamentos/periodo?{queryString}";
 
                 var sw = Stopwatch.StartNew();
                 var agendamentos = await _http.GetFromJsonAsync<List<AgendamentoDto>>(url);
@@ -117,10 +126,28 @@ namespace AgendaWPF.Services
                 throw new Exception(erro);
             }
         }
-        public async Task<List<AgendamentoDto>> SearchAgendamentoAsync(string termo)
+        public async Task<List<AgendamentoDto>> SearchAgendamentoAsync(AgendamentoSearchFilter filtro)
         {
-            var termoCodificado = Uri.EscapeDataString(termo);
-            var url = $"api/agendamentos/search?term={termoCodificado}";
+            var parametros = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(filtro.SearchTerm))
+            {
+                var termoCodificado = Uri.EscapeDataString(filtro.SearchTerm);
+                parametros.Add($"searchTerm={termoCodificado}");
+            }
+            if (filtro.TiposDeFotoSelecionados != null && filtro.TiposDeFotoSelecionados.Any())
+            {
+
+                foreach (var tipo in filtro.TiposDeFotoSelecionados)
+                {
+                 
+                    var tipoCodificado = Uri.EscapeDataString(tipo.ToString());
+                    parametros.Add($"tiposDeFotoSelecionados={tipoCodificado}");
+                }
+            }
+            var queryString = parametros.Any() ? "?" + string.Join("&", parametros) : string.Empty;
+            var url = $"api/agendamentos/search{queryString}";
+
             var agendamentos = await _http.GetFromJsonAsync<List<AgendamentoDto>>(url);
             return agendamentos ?? new List<AgendamentoDto>();
         }

@@ -1,4 +1,5 @@
-﻿using AgendaShared;
+﻿using AgendaApi.Models;
+using AgendaShared;
 
 namespace AgendaApi.Domain.Models
 {
@@ -13,10 +14,14 @@ namespace AgendaApi.Domain.Models
         public string Titulo { get; set; } = string.Empty;
         public string? Descricao { get; set; }
 
-        public string? LembreteTipo { get; set; }      // Financeiro, FollowUp, Outro...
+        public string? CaminhoImagem { get; set; }
+
         public LembreteStatus Status { get; set; }  // Pendente, Concluido, Ignorado
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? ConcluidoEm { get; set; }
+
+        public Agendamento? Agendamento { get; set; }
+        public Cliente? Cliente { get; set; }
     }
 }

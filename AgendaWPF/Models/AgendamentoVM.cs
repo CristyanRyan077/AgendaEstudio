@@ -1,5 +1,6 @@
 ﻿using AgendaShared;
 using AgendaShared.DTOs;
+using AgendaShared.Helpers;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
@@ -33,6 +34,9 @@ namespace AgendaWPF.Models
 
         [ObservableProperty] private DateTime data;
 
+        [ObservableProperty]
+        private bool _isTypeFilterMatch;
+
         [ObservableProperty] private TimeSpan? horario;
 
         [ObservableProperty] private decimal valor;
@@ -42,7 +46,8 @@ namespace AgendaWPF.Models
         [ObservableProperty] private ObservableCollection<PagamentoDto> pagamentos = new();
         [ObservableProperty] private ObservableCollection<ClienteDto> clientes = new();
         [ObservableProperty] private ObservableCollection<AgendamentoDto> historicoAgendamentos = new();
-
+        [NotMapped] public DateTime PrevistoRevelar => BusinessDays.AddBusinessDays(Data.Date, 15);
+        [NotMapped] public DateTime PrevistoEntrega => BusinessDays.AddBusinessDays(Data.Date, 30);
         [NotMapped] public decimal ValorPago => Pagamentos?.Sum(p => p.Valor) ?? 0m;
         public bool EstaPago => Math.Round(Valor, 2) <= Math.Round(ValorPago, 2);
 
@@ -62,9 +67,7 @@ namespace AgendaWPF.Models
                 };
             }
         }
-        [NotMapped] public bool TemReserva => Pagamentos?.Any(p => p.Tipo == TipoLancamento.Reserva) == true;
-        [NotMapped] public string? MesReserva => Pagamentos?.FirstOrDefault(p => p.Tipo == TipoLancamento.Reserva)?.Observacao;
-        [NotMapped] public decimal? ValorReserva => Pagamentos.FirstOrDefault(p => p.Tipo == TipoLancamento.Reserva)?.Valor;
+
 
         public AgendamentoVM(AgendamentoDto dto)
         {

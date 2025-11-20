@@ -4,6 +4,7 @@ using AgendaApi.Infra;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AgendaApi.Migrations
 {
     [DbContext(typeof(AgendaContext))]
-    partial class AgendaContextModelSnapshot : ModelSnapshot
+    [Migration("20251116211645_UPDATE_tabLembretes_colAgd_colCliente")]
+    partial class UPDATE_tabLembretes_colAgd_colCliente
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -32,9 +35,6 @@ namespace AgendaApi.Migrations
 
                     b.Property<int?>("AgendamentoId")
                         .HasColumnType("int");
-
-                    b.Property<string>("CaminhoImagem")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("ClienteId")
                         .HasColumnType("int");

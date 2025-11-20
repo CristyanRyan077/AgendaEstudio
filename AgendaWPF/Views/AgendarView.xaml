@@ -203,7 +203,7 @@
                            FontWeight="Bold" TextTrimming="CharacterEllipsis"
                            Foreground="#333" />
                     <TextBox  Background="LightGray"
-                         TextWrapping="Wrap" MaxHeight="60"
+                         TextWrapping="Wrap" Height="60"
                          AcceptsReturn="True" VerticalContentAlignment="Top"
                          VerticalScrollBarVisibility="Auto" FontSize="16"
                          Text="{Binding NovoCliente.Observacao}" />

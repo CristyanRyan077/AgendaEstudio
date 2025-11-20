@@ -46,7 +46,7 @@ namespace AgendaShared.DTOs
         public int PercentualPago => Valor <= 0 ? 0 : (int)Math.Round(Math.Min(ValorPago, Valor) / Valor * 100m);
     }
 
-    public sealed class ServicoResumoDTO
+    public sealed class ServicoFaturamentoDTO
     {
         public string Servico { get; set; } = "—";
         public decimal Receita { get; set; }

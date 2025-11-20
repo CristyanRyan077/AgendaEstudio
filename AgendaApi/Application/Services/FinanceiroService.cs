@@ -11,7 +11,7 @@ namespace AgendaApi.Application.Services
 
         Task<FinanceiroResumo> CalcularKpisAsync(FinanceiroFiltroRequest filtro);
         Task<List<RecebivelDTO>> ListarEmAbertoAsync(FinanceiroFiltroRequest filtro);
-        Task<List<ServicoResumoDTO>> ResumoPorServicoAsync(FinanceiroFiltroRequest filtro);
+        Task<List<ServicoFaturamentoDTO>> ResumoPorServicoAsync(FinanceiroFiltroRequest filtro);
         public Task<List<ProdutoResumoVM>> ResumoPorProdutoAsync(FinanceiroFiltroRequest filtro);
     }
     public class FinanceiroService : IFinanceiroService
@@ -161,7 +161,7 @@ namespace AgendaApi.Application.Services
             return q.ToListAsync();
         }
 
-        public Task<List<ServicoResumoDTO>> ResumoPorServicoAsync(
+        public Task<List<ServicoFaturamentoDTO>> ResumoPorServicoAsync(
          FinanceiroFiltroRequest filtro)
         {
             var valid = GetQueryBase(filtro)
@@ -183,7 +183,7 @@ namespace AgendaApi.Application.Services
                 join s in _db.Servicos.AsNoTracking() on g.ServicoId equals s.Id into sj
                 from s in sj.DefaultIfEmpty()
                 orderby g.Receita descending
-                select new ServicoResumoDTO
+                select new ServicoFaturamentoDTO
                 {
                     Servico = s != null ? s.Nome : "—",
                     Receita = g.Receita,

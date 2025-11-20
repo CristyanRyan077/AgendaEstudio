@@ -43,6 +43,22 @@
                                     <KeyBinding Key="Enter" Command="{Binding FindProximoCommand}"/>
                                 </hc:TextBox.InputBindings>
                             </hc:TextBox>
+                            <ComboBox ItemsSource="{Binding OpcoesFiltroFoto}" 
+                                      Margin="6,0" 
+                                      Width="100"
+                                      StaysOpenOnEdit="True" 
+                                      IsEditable="True" 
+                                      IsReadOnly="True"
+                                      Text="Tipo:">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <CheckBox Content="{Binding Nome}" 
+                                                  IsChecked="{Binding IsSelected}"
+                                                  Command="{Binding DataContext.ToggleFiltroCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:CardSemanal}}}"
+                                                  Margin="2"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
                             <TextBlock Text="{Binding FindIndiceLabel}" Margin="8,0" VerticalAlignment="Center"/>
                             <Button Content="↑" Command="{Binding FindAnteriorCommand}" Margin="2,0"/>
                             <Button Content="↓" Command="{Binding FindProximoCommand}" Margin="2,0"/>
@@ -111,34 +127,73 @@
                         <DataTemplate>
                             <StackPanel Margin="6">
 
-                                <!-- Nome do dia (fora do card) -->
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                    <TextBlock Text="{Binding Data, StringFormat=dd/MM/yyyy}" HorizontalAlignment="Left" Background="#99FFFFFF" FontSize="16" Margin="0 0 120 0"/>
-                                    <TextBlock Text="{Binding Nome, UpdateSourceTrigger=PropertyChanged}" 
-                                FontSize="20"
-                                FontWeight="Bold"
-                                Foreground="Black"
-                                HorizontalAlignment="Center"
-                                Width="152" Height="32"
-                                Background="#FF13FF00"
-                                TextAlignment="Center" Margin="0,0,210,0"
-                                FontFamily="Segoe UI Black" VerticalAlignment="Top"/>
-                                    <Button Content="➕"
-                                        Tag="{Binding Data}"
-                                        Click="BtnAgenda_Click"
-                                        FontSize="14" Height="30"
-                                        Background="Green" Margin="0,0,10,0"
-                                        HorizontalAlignment="Right"/>
+                                <!-- Cabeçalho do dia -->
+                                <Grid Margin="0,0,0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <!-- Data -->
+                                        <ColumnDefinition Width="Auto"/>
+                                        <!-- Nome do dia (ocupa o meio) -->
+                                        <ColumnDefinition Width="400"/>
+                                        <!-- Sino (largura fixa) -->
+                                        <ColumnDefinition Width="30"/>
+                                        <!-- Botão + -->
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
 
-                                </StackPanel>
+                                    <!-- Data -->
+                                    <TextBlock Grid.Column="0"
+                                               Text="{Binding Data, StringFormat=dd/MM/yyyy}"
+                                               Background="#99FFFFFF"
+                                               FontSize="16"
+                                               VerticalAlignment="Center"
+                                               Margin="10,0,18,0"/>
+
+                                    <!-- Nome -->
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding Nome}"
+                                               FontSize="20"
+                                               FontWeight="Bold"
+                                               Foreground="Black"
+                                               Background="#FF13FF00"
+                                               Height="32" MaxWidth="200"
+                                               TextAlignment="Center"
+                                               FontFamily="Segoe UI Black"
+                                               VerticalAlignment="Top"/>
+
+                                    <!-- Slot fixo pro sino -->
+                                    <Border Grid.Column="2"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            Width="24" Height="24"
+                                            Background="Transparent">
+                                        <!-- Aqui some só o ícone, mas o espaço continua -->
+                                        <Button Content="🔔"  Cursor="Hand" Padding="0"
+                                                   FontSize="18" Background="Yellow"
+                                                   Visibility="{Binding TemLembretes,
+                                                   Converter={StaticResource BoolToVisibilityConverter}}"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   Click="BtnLembretes_Click"/>
+                                    </Border>
+
+                                    <!-- Botão + -->
+                                    <Button Grid.Column="3"
+                                            Content="➕"
+                                            Tag="{Binding Data}"
+                                            Click="BtnAgenda_Click"
+                                            FontSize="14" Height="30"
+                                            Background="Green"
+                                            Margin="18,0,0,0"
+                                            HorizontalAlignment="Right"/>
+                                </Grid>
 
 
                                 <Border Background="#88FFFFFF" 
-                            CornerRadius="10"
-                            Padding="4"
-                            Height="420" 
-                            BorderBrush="#DDD"
-                            BorderThickness="1">
+                                        CornerRadius="10"
+                                        Padding="4"
+                                        Height="420" 
+                                        BorderBrush="#DDD"
+                                        BorderThickness="1">
 
                                     <hc:Card HorizontalAlignment="Stretch">
                                         <!-- Agendamentos do dia -->
@@ -148,12 +203,30 @@
                                                     <DataTemplate>
                                                         <Border Padding="6" 
                                                             CornerRadius="12"
-                                                            BorderBrush="#DDD"
-                                                            BorderThickness="1"
                                                             Margin="0,0,0,10" MouseDown="AgendamentoBorder_MouseDown"
                                                             Background="White"
                                                             Effect="{StaticResource DropShadow}">
-                                                            
+                                                            <Border.Style>
+                                                                <Style TargetType="Border">
+                                                                    <Setter Property="BorderBrush" Value="#DDD"/>
+                                                                    <Setter Property="BorderThickness" Value="1"/>
+
+                                                                    <Style.Triggers>
+
+                                                                        <DataTrigger Binding="{Binding IsTypeFilterMatch}" Value="True">
+                                                                            <Setter Property="Background" Value="#4A90E2"/>
+                                                                            <Setter Property="BorderThickness" Value="2"/>
+                                                                        </DataTrigger>
+
+                                                                        <DataTrigger Binding="{Binding IsCurrentFindHit}" Value="True">
+                                                                            <Setter Property="BorderBrush" Value="#FE8000"/>
+                                                                            <Setter Property="BorderThickness" Value="2"/>
+                                                                        </DataTrigger>
+
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Border.Style>
+
 
                                                             <Grid>
                                                                 <StackPanel>
@@ -181,6 +254,7 @@
                                                                             <TextBlock Text="{Binding Crianca.Nome}" Margin="0,0,5,0" FontSize="14"/>
                                                                             <TextBlock Text="{Binding MesversarioFormatado}" FontSize="14"/>
                                                                         </StackPanel>
+
                                                                     </StackPanel>
 
 
@@ -213,7 +287,10 @@
                                                                         <TextBlock Text="{Binding Horario, StringFormat={}{0:hh\\:mm}}" FontSize="14"/>
                                                                         <TextBlock Text=" | " Foreground="Gray" Margin="0,-2,0,0" FontSize="16"/>
                                                                         <TextBlock Text="{Binding Tema}" Margin="0,0,5,0" FontSize="14"/>
-                                                                        
+                                                                        <TextBlock Text=" | " Foreground="Gray" Margin="0,-2,0,0" FontSize="16"/>
+                                                                        <TextBlock Text="{Binding Tipo}" FontSize="14"/>
+                                                                        <TextBlock Text=" | " Foreground="Gray" Margin="0,-2,0,0" FontSize="16"/>
+                                                                        <TextBlock Text="{Binding Cliente.Observacao}" FontSize="14" />
 
                                                                     </StackPanel>
                                                                     

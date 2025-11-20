@@ -8,7 +8,9 @@ using AgendaApi.Interfaces;
 using AgendaApi.Models;
 using AgendaShared;
 using AgendaShared.DTOs;
+using AgendaShared.Helpers;
 using Microsoft.EntityFrameworkCore;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace AgendaApi.Services
 {
@@ -146,47 +148,53 @@ namespace AgendaApi.Services
             var agendamentos = await _repository.GetPorPeriodoAsync(inicio, fim);
             return agendamentos.Select(a => a.ToDto());
         }
-        public async Task<List<AgendamentoDto>> SearchAgendamentosAsync(string searchTerm)
+        public async Task<List<AgendamentoDto>> SearchAgendamentosAsync(AgendamentoSearchFilter filter)
         {
-            if (string.IsNullOrWhiteSpace(searchTerm))
+            if (filter == null ||
+             (string.IsNullOrWhiteSpace(filter.SearchTerm) &&
+             (filter.TiposDeFotoSelecionados == null || !filter.TiposDeFotoSelecionados.Any()) &&
+             !filter.ClienteId.HasValue))
             {
                 return new List<AgendamentoDto>();
             }
+            var query = _context.Agendamentos
+            .Include(a => a.Cliente)
+            .Include(a => a.Crianca)
+            .Include(a => a.Servico)
+            .AsQueryable();
 
-            var normalizedTerm = searchTerm.Trim().ToLowerInvariant();
-
-            // 1. Tenta buscar por ID se o termo começar com '#'
-            if (normalizedTerm.StartsWith("#") && int.TryParse(normalizedTerm.Substring(1), out int clienteId))
+            if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
             {
-                // Busca apenas por ID do cliente
-                var agendamentosById = await _context.Agendamentos
-                    .Include(a => a.Cliente)
-                    .Include(a => a.Crianca)
-                    .Include(a => a.Servico)
-                    .Where(a => a.ClienteId == clienteId)
-                    .ToListAsync();
+                var normalizedTerm = filter.SearchTerm.Trim().ToLowerInvariant();
 
-                return agendamentosById.Select(a => a.ToDto()).ToList();
+                if (normalizedTerm.StartsWith("#") && int.TryParse(normalizedTerm.Substring(1), out int clienteId))
+                {
+                    var agendamentosById = await query
+                        .Where(a => a.ClienteId == clienteId)
+                        .ToListAsync();
+
+                    return agendamentosById.Select(a => a.ToDto()).ToList();
+                }
+
+                query = query.Where(a =>
+                    a.Cliente.Nome.ToLower().Contains(normalizedTerm) ||
+                    a.Cliente.Telefone.EndsWith(normalizedTerm));
             }
 
-            // 2. Busca por Nome ou Telefone (para termos que não são IDs com '#')
-            var agendamentosGerais = await _context.Agendamentos
-                .Include(a => a.Cliente)
-                .Include(a => a.Crianca)
-                .Include(a => a.Servico)
-                .Where(a =>
-                    // Busca por Nome do Cliente
-                    a.Cliente.Nome.ToLower().Contains(normalizedTerm) ||
-
-                    // Busca por Telefone (pode ser necessário normalizar o telefone para busca exata)
-                    a.Cliente.Telefone.EndsWith(normalizedTerm)
-                )
-                .OrderByDescending(a => a.Data) // Agendamentos mais recentes primeiro
-                .Take(100) // Limita para evitar sobrecarga
-                .ToListAsync();
+            if (filter.TiposDeFotoSelecionados != null && filter.TiposDeFotoSelecionados.Any())
+            {
+                // Esta é a chave: O método .Contains() em uma lista de enums é EF-Core friendly.
+                // Ele se traduz para o operador SQL "IN" (a.Servico.TipoFoto IN (Album, Painel)).
+                var selectedEnums = filter.TiposDeFotoSelecionados;
+                query = query.Where(a => selectedEnums.Contains(a.Entrega));
+            }
 
             // 3. Mapeia para DTOs e retorna
-            return agendamentosGerais.Select(a => a.ToDto()).ToList();
+            var agendamentosEncontrados = await query
+            .OrderByDescending(a => a.Data) // Agendamentos mais recentes primeiro
+            .Take(100) // Limita para evitar sobrecarga
+            .ToListAsync();
+            return agendamentosEncontrados.Select(a => a.ToDto()).ToList();
         }
        
 

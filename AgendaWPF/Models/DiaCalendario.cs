@@ -15,9 +15,19 @@ namespace AgendaWPF.Models
     {
         public DateTime Data { get; set; }
 
-        [ObservableProperty]
-        private ObservableCollection<AgendamentoDto> agendamentos = new();
+        [ObservableProperty] private ObservableCollection<AgendamentoDto> agendamentos = new();
+        public ObservableCollection<LembretesVM> Lembretes { get; } = new();
+
         [ObservableProperty] private bool selecionado;
+        public bool TemLembretes => Lembretes.Any();
+        public DiaCalendario()
+        {
+            // Sempre que mudar a coleção, avisa que TemLembretes mudou
+            Lembretes.CollectionChanged += (_, __) =>
+            {
+                OnPropertyChanged(nameof(TemLembretes));
+            };
+        }
 
     }
 

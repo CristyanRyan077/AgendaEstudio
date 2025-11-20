@@ -69,6 +69,7 @@ builder.Services.AddScoped<IPacoteService, PacoteService>();
 builder.Services.AddScoped<IPagamentoService, PagamentoService>();
 builder.Services.AddScoped<IProdutoService, ProdutoService>();
 builder.Services.AddScoped<IFinanceiroService, FinanceiroService>();
+builder.Services.AddScoped<ILembreteService, LembreteService>();
 
 builder.Services.AddScoped<IAgendamentoRepository, AgendamentoRepository>();
 builder.Services.AddScoped<IClienteRepository, ClienteRepository>();

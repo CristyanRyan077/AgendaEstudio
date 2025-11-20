@@ -1,0 +1,330 @@
+﻿<UserControl x:Class="AgendaWPF.Views.LembretesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:AgendaWPF.Views"
+             mc:Ignorable="d"  xmlns:hc="https://handyorg.github.io/handycontrol" xmlns:viewmodels="clr-namespace:AgendaWPF.ViewModels" d:DataContext="{d:DesignInstance Type=viewmodels:LembretesViewModel}"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Filtros / Ações -->
+            <RowDefinition Height="*"/>
+            <!-- Conteúdo -->
+        </Grid.RowDefinitions>
+
+        <!-- ====================== FILTROS / AÇÕES ====================== -->
+        <Border Grid.Row="0"
+                Padding="10"
+                Background="#11000000"
+                CornerRadius="8"
+                BorderBrush="#22000000"
+                BorderThickness="1">
+            <DockPanel LastChildFill="True">
+                <!-- Lado esquerdo: filtros -->
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
+
+                    <!-- Texto -->
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="Buscar:" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                        <hc:TextBox Width="220"
+                                    Text="{Binding FiltroTexto, UpdateSourceTrigger=PropertyChanged}"
+                                    hc:InfoElement.Placeholder="Texto / cliente / observação"/>
+                    </StackPanel>
+
+                    <!-- Período -->
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="Período:" Margin="16,0,6,0" VerticalAlignment="Center"/>
+                        <hc:DatePicker Width="130"
+                                       SelectedDate="{Binding PeriodoInicio, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                       hc:InfoElement.Placeholder="Início"/>
+                        <TextBlock Text="até" Margin="4,0" VerticalAlignment="Center"/>
+                        <hc:DatePicker Width="130"
+                                       SelectedDate="{Binding PeriodoFim, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                       hc:InfoElement.Placeholder="Fim"/>
+                    </StackPanel>
+
+                    
+                </StackPanel>
+
+                <!-- Lado direito: ações rápidas -->
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
+
+
+                    <Separator Width="8"/>
+
+                    <Button Content="Novo lembrete"
+                            Command="{Binding NovoCommand}"
+                            Padding="10,2"/>
+
+                    <Button Content="Limpar"
+                            Command="{Binding LimparFiltrosCommand}"
+                            Padding="8,2"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- ====================== CONTEÚDO ====================== -->
+        <Grid Grid.Row="1" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <!-- Lista -->
+                <ColumnDefinition Width="*"/>
+                <!-- Detalhes -->
+            </Grid.ColumnDefinitions>
+
+            <!-- ===== Lista de lembretes ===== -->
+            <Border Grid.Column="0"
+                    Margin="0,0,8,0"
+                    CornerRadius="8"
+                    Background="#11FFFFFF"
+                    BorderThickness="1"
+                    BorderBrush="#22000000">
+                <DataGrid ItemsSource="{Binding Lembretes}"
+                          SelectedItem="{Binding LembreteSelecionado}"
+                          AutoGenerateColumns="False"
+                        CanUserAddRows="False"
+                        CanUserDeleteRows="False"
+                        HeadersVisibility="Column"
+                        Background="White" BorderBrush="#DDD"
+                        BorderThickness="1" RowHeight="36"
+                        ColumnHeaderHeight="40"
+                        FontSize="14" FontFamily="Segoe UI"
+                        GridLinesVisibility="None"
+                        SnapsToDevicePixels="True" Margin="0,0,0,8">
+                    <DataGrid.Resources>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="Background" Value="#2D89EF"/>
+                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                            <Setter Property="Padding" Value="8"/>
+                        </Style>
+                    </DataGrid.Resources>
+
+                    <!-- Estilo simples de linha: cinza claro / destaque se estiver perto do vencimento -->
+
+
+                    <DataGrid.Columns>
+                        <!-- Checkbox: concluído -->
+                        <DataGridCheckBoxColumn Header="✔" 
+                                                Binding="{Binding Concluido, Mode=TwoWay}"
+                                                Width="40"/>
+
+                        <DataGridTextColumn Header="Data"
+                                            Binding="{Binding DataAlvo, StringFormat=dd/MM/yyyy}"/>
+
+
+                        <DataGridTextColumn Header="Titulo" IsReadOnly="True"
+                                   Binding="{Binding Titulo, Mode=OneWay}"
+                                   Width="Auto"/>
+                        <DataGridTextColumn Header="Texto" IsReadOnly="True"
+                                   Binding="{Binding Descricao, Mode=OneWay}"
+                                   Width="Auto"/>
+
+                        <!-- Botões de ação na linha -->
+                        
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+
+            <!-- ===== Detalhes / Edição ===== -->
+            <Border Grid.Column="1"
+                    CornerRadius="8"
+                    Background="#11FFFFFF"
+                    BorderThickness="1" 
+                    BorderBrush="#22000000"
+                    Padding="10">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock FontWeight="Bold"
+                               FontSize="16"
+                               Margin="0,0,0,10">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Text" Value="Detalhes do lembrete"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsNovo}" Value="True">
+                                    <Setter Property="Text" Value="Novo lembrete"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                    </TextBlock>
+
+                    <StackPanel Grid.Row="1" Orientation="Vertical">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Data:" Width="90" VerticalAlignment="Center"/>
+                            <hc:DatePicker Width="160"
+                                           SelectedDate="{Binding LembreteEmEdicao.DataAlvo, Mode=TwoWay}"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Titulo:" Width="90" VerticalAlignment="Center"/>
+                            <hc:TextBox Width="220" Margin="0,0,0,5"
+                                        Text="{Binding LembreteEmEdicao.Titulo, Mode=TwoWay}"/>
+                        </StackPanel>
+
+
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Concluído:" Width="90" VerticalAlignment="Center">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text" Value="Concluido"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsNovo}" Value="True">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <CheckBox IsChecked="{Binding LembreteEmEdicao.Concluido, Mode=TwoWay}">
+                                <CheckBox.Style>
+                                    <Style TargetType="CheckBox">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsNovo}" Value="True">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </CheckBox.Style>
+                            </CheckBox>
+                        </StackPanel>
+
+                        <TextBlock Text="Texto:" Margin="0,6,0,8"/>
+                        <hc:TextBox AcceptsReturn="True"
+                                    Height="60"
+                                    TextWrapping="Wrap" VerticalContentAlignment="Top"
+                                    VerticalScrollBarVisibility="Auto"
+                                    Text="{Binding LembreteEmEdicao.Descricao, Mode=TwoWay}"/>
+
+                        <Border x:Name="DropZone"
+                                    BorderThickness="2"
+                                    CornerRadius="8"
+                                    Padding="10" Height="500" Width="400"
+                                    Margin="0,28,0,0" Focusable="True"
+                                    AllowDrop="True" Cursor="Hand"
+                                    Background="#33FFFFFF"  MouseLeftButtonDown="DropZone_MouseLeftButtonDown"
+                                    BorderBrush="#888"  PreviewKeyDown="DropZone_PreviewKeyDown">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <!-- Estado normal -->
+                                    <Setter Property="BorderBrush" Value="#888"/>
+                                    <Setter Property="Background" Value="#33FFFFFF"/>
+
+                                    <Style.Triggers>
+                                        <!-- Quando a área estiver com foco de teclado -->
+                                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                            <Setter Property="BorderBrush" Value="#2D89EF"/>
+                                            <Setter Property="BorderThickness" Value="3"/>
+                                            <Setter Property="Background" Value="#2200A2FF"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+
+                            <Grid>
+                                <!-- Texto quando não tem imagem -->
+                                <TextBlock Text="Arraste uma imagem aqui ou pressione Ctrl+V"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" FontSize="16"
+                                               Foreground="#666"
+                                               FontStyle="Italic">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding LembreteEmEdicao.CaminhoImagem}" Value="{x:Null}">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding LembreteEmEdicao.CaminhoImagem}" Value="">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding LembreteEmEdicao.CaminhoImagem}">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <TextBlock Text="Pressione Ctrl+V para colar"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Bottom"
+                                           Margin="0,0,0,8"
+                                           FontSize="15"
+                                           Foreground="#EEE"
+                                           Background="#66000000"
+                                           Padding="6">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Value="True">
+                                                    <DataTrigger.Binding>
+                                                        <Binding Path="IsKeyboardFocusWithin"
+                                         RelativeSource="{RelativeSource AncestorType=Border}"/>
+                                                    </DataTrigger.Binding>
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+
+                                <!-- Preview da imagem -->
+                                <Image Source="{Binding LembreteEmEdicao.CaminhoImagem}"
+                                       Stretch="Uniform"
+                                       Visibility="{Binding LembreteEmEdicao.CaminhoImagem, 
+                                  Converter={StaticResource NullToVisibilityConverter}}">
+                                </Image>
+
+                            </Grid>
+                        </Border>
+
+
+
+
+
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Center"
+                                Margin="0,10,0,30">
+                        <Button Content="Excluir"
+                                Command="{Binding ExcluirCommand}"
+                                Padding="10,2">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsNovo}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+
+                        <Button Content="Cancelar"
+                                Command="{Binding CancelarCommand}"
+                                Padding="10,2"
+                                Margin="8,0,0,0"/>
+                        <Button Content="Salvar"
+                                Command="{Binding SalvarCommand}"
+                               
+                                Padding="10,2"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

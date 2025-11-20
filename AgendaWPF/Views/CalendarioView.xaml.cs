@@ -200,6 +200,26 @@ namespace AgendaWPF.Views
                 e.Handled = true;
             }
         }
+        private void BtnLembretes_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Button btn)
+                return;
+
+            if (btn.DataContext is not DiaCalendario dia)
+                return;
+
+            // Se quiser, pode ignorar se por algum motivo não tiver lembretes
+            if (!dia.TemLembretes)
+                return;
+
+            var win = new LembretesDoDiaWindow
+            {
+                DataContext = dia,
+                Owner = Window.GetWindow(this)
+            };
+
+            win.ShowDialog();
+        }
 
         private void Dia_PreviewDragLeave(object sender, DragEventArgs e)
         {

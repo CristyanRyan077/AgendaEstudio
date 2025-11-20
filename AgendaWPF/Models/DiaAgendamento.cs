@@ -26,5 +26,17 @@ namespace AgendaWPF.Models
         }
         [ObservableProperty]
         private ObservableCollection<AgendamentoVM> agendamentos = new();
+        public ObservableCollection<LembretesVM> Lembretes { get; } = new();
+
+        public bool TemLembretes => Lembretes.Any();
+
+        public DiaAgendamento()
+        {
+            // Sempre que mudar a coleção, avisa que TemLembretes mudou
+            Lembretes.CollectionChanged += (_, __) =>
+            {
+                OnPropertyChanged(nameof(TemLembretes));
+            };
+        }
     }
 }

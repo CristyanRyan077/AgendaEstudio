@@ -14,7 +14,7 @@ namespace AgendaWPF.Services
     {
         Task<FinanceiroResumo> CalcularKpisAsync(FinanceiroFiltroRequest filtro);
         Task<List<RecebivelDTO>> ListarEmAbertoAsync(FinanceiroFiltroRequest filtro);
-        Task<List<ServicoResumoDTO>> ResumoPorServicoAsync(FinanceiroFiltroRequest filtro);
+        Task<List<ServicoFaturamentoDTO>> ResumoPorServicoAsync(FinanceiroFiltroRequest filtro);
         Task<List<ProdutoResumoVM>> ResumoPorProdutoAsync(FinanceiroFiltroRequest filtro);
     }
     public class FinanceiroService : IFinanceiroService
@@ -61,6 +61,8 @@ namespace AgendaWPF.Services
             var query = BuildQueryString(filtro);
             var url = $"api/Financeiro/kpis{query}";
 
+            System.Diagnostics.Debug.WriteLine($"[Financeiroservice] GET {url}");
+
             var result = await _http.GetFromJsonAsync<FinanceiroResumo>(url);
             return result ?? new FinanceiroResumo();
         }
@@ -72,13 +74,13 @@ namespace AgendaWPF.Services
             var result = await _http.GetFromJsonAsync<List<RecebivelDTO>>(url);
             return result ?? new List<RecebivelDTO>();
        }
-        public async Task<List<ServicoResumoDTO>> ResumoPorServicoAsync(FinanceiroFiltroRequest filtro)
+        public async Task<List<ServicoFaturamentoDTO>> ResumoPorServicoAsync(FinanceiroFiltroRequest filtro)
         {
             var query = BuildQueryString(filtro);
             var url = $"api/Financeiro/resumo/servicos{query}";
 
-            var result = await _http.GetFromJsonAsync<List<ServicoResumoDTO>>(url);
-            return result ?? new List<ServicoResumoDTO>();
+            var result = await _http.GetFromJsonAsync<List<ServicoFaturamentoDTO>>(url);
+            return result ?? new List<ServicoFaturamentoDTO>();
         }
         public async Task<List<ProdutoResumoVM>> ResumoPorProdutoAsync(FinanceiroFiltroRequest filtro)
         {

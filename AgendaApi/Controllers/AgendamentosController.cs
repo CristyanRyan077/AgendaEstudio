@@ -1,7 +1,9 @@
 ﻿using AgendaApi.Interfaces;
 using AgendaApi.Models;
 using AgendaApi.Services;
+using AgendaShared;
 using AgendaShared.DTOs;
+using AgendaShared.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -93,14 +95,10 @@ namespace AgendaApi.Controllers
         }
         [HttpGet("search")]
         [ProducesResponseType(typeof(List<AgendamentoDto>), 200)]
-        public async Task<IActionResult> SearchAgendamentos([FromQuery] string term)
+        public async Task<IActionResult> SearchAgendamentos([FromQuery] AgendamentoSearchFilter filtro)
         {
-            if (string.IsNullOrWhiteSpace(term))
-            {
-                return BadRequest("O termo de busca não pode estar vazio.");
-            }
 
-            var agendamentos = await _service.SearchAgendamentosAsync(term);
+            var agendamentos = await _service.SearchAgendamentosAsync(filtro);
             return Ok(agendamentos);
         }
 

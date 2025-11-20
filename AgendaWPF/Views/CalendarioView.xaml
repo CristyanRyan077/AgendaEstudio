@@ -30,21 +30,6 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-
-
-                    <Grid Grid.Row="3" Width="240" VerticalAlignment="Bottom" Margin="0,0,20,120" Grid.Column="2" HorizontalAlignment="Right">
-                    <StackPanel>
-                        <controles:ClienteAutoComplete />
-                    </StackPanel>
-                    
-
-                    </Grid>
-                  
-
-
-                   
-
-
                     <!-- Navegação -->
                     <StackPanel Orientation="Horizontal" Grid.Column="1" Margin="0,20,0,0"  Grid.Row="0" VerticalAlignment="Top" HorizontalAlignment="Right">
                         <Button Command="{Binding VoltarMesCommand}" Content="◀" Margin="0,0,0,0"/>
@@ -120,12 +105,15 @@
                                     </Border.Style>
                                     <Grid Margin="5">
                                         <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto"/>
-                                            <!-- Dia -->
-                                            <RowDefinition Height="*"/>
-                                            <!-- Lista de agendamentos -->
-                                        </Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                        
                                         <TextBlock Grid.Row="0" Text="{Binding Data.Day}" FontWeight="Bold"/>
+
+                                    <Button     FontSize="12" Background="Yellow" Content="🔔" Click="BtnLembretes_Click"
+                                                Visibility="{Binding TemLembretes, Converter={StaticResource BoolToVisibilityConverter}}" />
+                  
                                     <Button Content="➕"
                                             Width="18" Height="28"
                                             FontSize="14"
@@ -135,7 +123,7 @@
                                             Foreground="Green" Click="BtnAgenda_Click"
                                             Cursor="Hand" HorizontalAlignment="Right"
                                             ToolTip="Agendar"/>
-                                    <ScrollViewer Grid.Row="1" 
+                                    <ScrollViewer Grid.Row="2" 
                                             VerticalScrollBarVisibility="Auto"
                                             HorizontalScrollBarVisibility="Auto"
                                             Margin="0,0,0,0">
@@ -387,9 +375,7 @@
                                         </Grid>
                                     </TabItem>
 
-                                    <TabItem Header="Histórico">
-                                        <TextBlock Margin="8" Foreground="#666">Histórico do cliente e alterações recentes aparecerão aqui.</TextBlock>
-                                    </TabItem>
+                  
                                 </TabControl>
                             </Grid>
                         </DataTemplate>

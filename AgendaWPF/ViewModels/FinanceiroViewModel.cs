@@ -36,11 +36,11 @@ namespace AgendaWPF.ViewModels
         [ObservableProperty] private decimal ticketMedio;
         [ObservableProperty] private int qtdAgendamentos;
         [ObservableProperty] private FinanceiroFiltroRequest filtro;
-        public decimal PercRecebido => ReceitaBruta == 0 ? 0 : Math.Round(Recebido / ReceitaBruta * 100, 2);
+        [ObservableProperty] private decimal percRecebido;
 
         // 🔹 Listas
         [ObservableProperty] private ObservableCollection<RecebivelDTO> emAbertoLista = new();
-        [ObservableProperty] private ObservableCollection<ServicoResumoDTO> servicosResumo = new();
+        [ObservableProperty] private ObservableCollection<ServicoFaturamentoDTO> servicosResumo = new();
         [ObservableProperty] private ObservableCollection<ProdutoResumoVM> produtoResumo = new();
 
         // Produtos
@@ -105,7 +105,7 @@ namespace AgendaWPF.ViewModels
             EmAberto = kpis.EmAberto;
             QtdAgendamentos = kpis.QtdAgendamentos;
             TicketMedio = kpis.TicketMedio;
-
+            PercRecebido = kpis.PercRecebido;
             ReceitaProdutos = kpis.ReceitaProdutos;
             TicketMedioProdutos = kpis.TicketMedioProdutos;
             QtdProdutos = kpis.QtdProdutos;
@@ -123,8 +123,8 @@ namespace AgendaWPF.ViewModels
                     Status = r.Status
                 }));
 
-            ServicosResumo = new ObservableCollection<ServicoResumoDTO>(
-                resumo.Select(s => new ServicoResumoDTO
+            ServicosResumo = new ObservableCollection<ServicoFaturamentoDTO>(
+                resumo.Select(s => new ServicoFaturamentoDTO
                 {
                     Servico = s.Servico,
                     Receita = s.Receita,

@@ -59,6 +59,8 @@ namespace AgendaWPF
             services.AddSingleton<FormAgendamentoVM>();
             services.AddSingleton<PagamentosViewModel>();
             services.AddSingleton<FinanceiroViewModel>();
+            services.AddSingleton<LembretesViewModel>();
+            services.AddSingleton<EntregaViewModel>();
 
 
             services.AddTransient<MainWindow>();
@@ -69,6 +71,8 @@ namespace AgendaWPF
             services.AddTransient<FinanceiroView>();
             services.AddTransient<AdicionarPagamento>();
             services.AddTransient<EditarAgendamento>();
+            services.AddTransient<LembretesView>();
+            services.AddTransient<EntregaView>();
 
             services.AddSingleton<AgendaState>();
 #if DEBUG
@@ -81,6 +85,7 @@ namespace AgendaWPF
             services.AddHttpClient<IPagamentoService, PagamentoService>(client => { client.BaseAddress = new Uri(apiBaseUrl); });
             services.AddHttpClient<IServicoService, ServicoService>(client => { client.BaseAddress = new Uri(apiBaseUrl); });
             services.AddHttpClient<IFinanceiroService, FinanceiroService>(client => { client.BaseAddress = new Uri(apiBaseUrl); });
+            services.AddHttpClient<ILembreteService, LembretesService>(client => { client.BaseAddress = new Uri(apiBaseUrl); });
 
             ServiceProvider = services.BuildServiceProvider();
             var mainwindow = ServiceProvider.GetRequiredService<MainWindow>();

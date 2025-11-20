@@ -1,5 +1,6 @@
 ﻿using AgendaShared;
 using AgendaShared.DTOs;
+using AgendaShared.Helpers;
 using AgendaWPF.Controles;
 using AgendaWPF.Models;
 using AgendaWPF.Services;
@@ -33,6 +34,7 @@ namespace AgendaWPF.ViewModels
         private readonly IClienteService _clienteService;
         private readonly IMessenger _messenger;
         private readonly ISemanaService _semanaService;
+        private readonly ILembreteService _lembreteService;
 
         [ObservableProperty] private AgendamentoVM agendamentoSelecionado;
         [ObservableProperty] private bool mostrarDetalhes;
@@ -40,6 +42,7 @@ namespace AgendaWPF.ViewModels
         [ObservableProperty] private bool mostrarPagamentos;
         [ObservableProperty] private object? editarview;
         [ObservableProperty] private bool mostrarEditar;
+        public ObservableCollection<TipoFotoOpcao> OpcoesFiltroFoto { get; } = new();
         public IEnumerable<IdadeUnidade> IdadesUnidadeDisponiveis => Enum.GetValues(typeof(IdadeUnidade)).Cast<IdadeUnidade>();
         public IEnumerable<Genero> GenerosLista => Enum.GetValues(typeof(Genero)).Cast<Genero>();
         public IEnumerable<TipoEntrega> TiposEntrega => Enum.GetValues(typeof(TipoEntrega)).Cast<TipoEntrega>();
@@ -69,16 +72,22 @@ namespace AgendaWPF.ViewModels
         [ObservableProperty] private DateTime? dataFiltroSelecionada;
         public string FindIndiceLabel => FindTotal == 0 ? "0/0" : $"{FindIndice + 1}/{FindTotal}";
         public bool FindTemResultados => FindTotal > 0;
+ 
 
 
 
-        public AgendaViewModel(IMessenger messenger, IAgendamentoService agendamentoService, IClienteService clienteService, ISemanaService semanaService, IAcoesService acoes)
+        public AgendaViewModel(IMessenger messenger, IAgendamentoService agendamentoService, IClienteService clienteService, ISemanaService semanaService, IAcoesService acoes, ILembreteService lembreteService)
         {
             _agendamentoService = agendamentoService;
             _clienteService = clienteService;
             _messenger = messenger;
             _semanaService = semanaService;
             _acoes = acoes;
+            _lembreteService = lembreteService;
+            foreach (var tipo in Enum.GetValues<TipoEntrega>())
+            {
+                OpcoesFiltroFoto.Add(new TipoFotoOpcao(tipo));
+            }
 
             messenger.Register<AgendamentoCriadoMessage>(this, (_, msg) =>
             {
@@ -116,6 +125,7 @@ namespace AgendaWPF.ViewModels
             if (DiasSemana.Count == 0)
                 for (int i = 0; i < 7; i++) DiasSemana.Add(new DiaAgendamento());
             await CarregarSemanaAtualAsync();
+            await PreencherLembretesAsync();
         }
 
         public async Task CarregarSemanaAtualAsync()
@@ -142,6 +152,37 @@ namespace AgendaWPF.ViewModels
                     vmsDoDia = new List<AgendamentoVM>();
                 }
                 dia.Agendamentos = new ObservableCollection<AgendamentoVM>(vmsDoDia);
+            }
+            await PreencherLembretesAsync();
+        }
+        private async Task PreencherLembretesAsync()
+        {
+            var inicio = _semanaService.ObterSegunda(DataSelecionada);
+            var fim = inicio.AddDays(6);
+            var query = new LembreteQuery
+            {
+                Inicio = inicio,
+                Fim = fim
+            };
+            var lista = await _lembreteService.ListAsync(query);
+
+
+            // 2) Agrupa por dia
+            var porDia = lista
+                .GroupBy(l => l.DataAlvo.Date)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            // 3) Preenche na sua grade de dias
+            foreach (var dia in DiasSemana)
+            {
+
+                dia.Lembretes.Clear();
+
+                if (porDia.TryGetValue(dia.Data.Date, out var doDia))
+                {
+                    foreach (var l in doDia)
+                        dia.Lembretes.Add(new LembretesVM(l));
+                }
             }
         }
         private void PreencherEsqueletoDaSemana(DateTime referencia)
@@ -177,22 +218,53 @@ namespace AgendaWPF.ViewModels
         {
             _ = RebuildFindHitsAsync();
         }
+        [RelayCommand]
+        private async Task ToggleFiltroAsync()
+        {
+            // Apenas chama a busca novamente
+            await RebuildFindHitsAsync();
+        }
         private async Task RebuildFindHitsAsync()
         {
             var termo = FindTermo?.Trim();
-            _findHits.Clear();
-            FindAgendamentoIdAtual = null;
 
-            if (string.IsNullOrWhiteSpace(termo))
+            _findHits.Clear();  
+            FindAgendamentoIdAtual = null;
+            var tiposSelecionados = OpcoesFiltroFoto
+            .Where(o => o.IsSelected)
+            .Select(o => o.Valor)
+            .ToHashSet();
+
+            if (string.IsNullOrWhiteSpace(termo) && !tiposSelecionados.Any())
             {
                 FindTotal = 0;
                 FindIndice = 0;
                 return;
             }
+            foreach (var dia in DiasSemana)
+            {
+                foreach (var agendamento in dia.Agendamentos)
+                {
+                    // Se a lista de tipos selecionados não estiver vazia E o tipo do agendamento estiver nela
+                    if (tiposSelecionados.Any() && tiposSelecionados.Contains(agendamento.Tipo))
+                    {
+                        agendamento.IsTypeFilterMatch = true;
+                    }
+                    else
+                    {
+                        agendamento.IsTypeFilterMatch = false;
+                    }
+                }
+            }
 
             // 1) chamada da api para buscar os agendamentos
             List<AgendamentoDto> dtosEncontrados;
-            try { dtosEncontrados = await _agendamentoService.SearchAgendamentoAsync(termo); }
+            var filtro = new AgendamentoSearchFilter
+            {
+                SearchTerm = termo,
+                TiposDeFotoSelecionados = tiposSelecionados.ToList()
+            };
+            try { dtosEncontrados = await _agendamentoService.SearchAgendamentoAsync(filtro); }
 
             catch (Exception ex)
             { 
@@ -257,6 +329,12 @@ namespace AgendaWPF.ViewModels
         private void FindLimpar()
         {
             FindTermo = null;
+            foreach (var opcao in OpcoesFiltroFoto)
+            {
+                // Define false sem disparar a notificação propertychanged se quiser performance,
+                // ou apenas set = false normal.
+                opcao.IsSelected = false;
+            }
             if (_currentHighlightedAgendamento != null)
             {
                 _currentHighlightedAgendamento.IsCurrentFindHit = false;
